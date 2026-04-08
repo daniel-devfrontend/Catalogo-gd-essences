@@ -1,0 +1,20 @@
+{
+	"name": "monorepo",
+	"version": "0.0.0",
+	"private": true,
+	"homepage": "https://daniel-devfrontend.github.io/Catalogo-gd-essences",
+	"scripts": {
+		"dev": "npm run dev --prefix web",
+		"build": "npm run build --prefix web",
+		"deploy": "npm run deploy --prefix web",
+		"start": "npx concurrently --kill-others --raw",
+		"lint": "npx concurrently --raw \"npm run lint --prefix web\""
+	},
+	"devDependencies": {
+		"concurrently": "^9.1.2",
+		"gh-pages": "^6.3.0"
+	},
+	"workspaces": [
+		"web"
+	]
+}
