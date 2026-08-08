@@ -6,10 +6,11 @@ import CatalogPage from './pages/CatalogPage.jsx';
 import CollectionsPage from './pages/CollectionsPage.jsx';
 import CollectionDetailPage from './pages/CollectionDetailPage.jsx';
 import ContactPage from './pages/ContactPage.jsx';
+import AdminPage from './pages/AdminPage.jsx';
 
 function App() {
   return (
-    <Router>
+    <Router basename={import.meta.env.BASE_URL}>
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<HomePage />} />
@@ -17,6 +18,7 @@ function App() {
         <Route path="/colecciones" element={<CollectionsPage />} />
         <Route path="/coleccion/:id" element={<CollectionDetailPage />} />
         <Route path="/contacto" element={<ContactPage />} />
+        <Route path="/admin" element={<AdminPage />} />
       </Routes>
       <Toaster />
     </Router>

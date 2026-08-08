@@ -1,10 +1,26 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Header, Footer, PerfumeCard, PerfumeDetailModal } from '@/components';
-import { collections, perfumes } from '@/data/perfumes.js';
+import { getCollections, getProducts } from '@/lib/dataService';
 
 const CollectionDetailPage = () => {
   const { id } = useParams();
+  const [perfumes, setPerfumes] = React.useState([]);
+  const [collections, setCollections] = React.useState([]);
+
+  React.useEffect(() => {
+    const loadData = async () => {
+      const [availablePerfumes, availableCollections] = await Promise.all([
+        getProducts(),
+        getCollections(),
+      ]);
+      setPerfumes(availablePerfumes.filter((product) => product.status !== 'draft'));
+      setCollections(availableCollections);
+    };
+
+    loadData();
+  }, []);
+
   const collection = collections.find((c) => c.id === id);
   const perfumesInCollection = perfumes.filter((p) => p.collection === id);
 
@@ -41,7 +57,7 @@ const CollectionDetailPage = () => {
             {collection.description}
           </p>
           {perfumesInCollection.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
               {perfumesInCollection.map((perfume) => (
                 <PerfumeCard key={perfume.id} perfume={perfume} onClick={() => handlePerfumeClick(perfume)} />
               ))}

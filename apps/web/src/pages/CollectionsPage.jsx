@@ -2,9 +2,25 @@ import React from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { Header, Footer, CollectionCard } from '@/components';
-import { collections, perfumes } from '@/data/perfumes.js';
+import { getCollections, getProducts } from '@/lib/dataService';
 
 const CollectionsPage = () => {
+  const [perfumes, setPerfumes] = React.useState([]);
+  const [collections, setCollections] = React.useState([]);
+
+  React.useEffect(() => {
+    const loadData = async () => {
+      const [availablePerfumes, availableCollections] = await Promise.all([
+        getProducts(),
+        getCollections(),
+      ]);
+      setPerfumes(availablePerfumes.filter((product) => product.status !== 'draft'));
+      setCollections(availableCollections);
+    };
+
+    loadData();
+  }, []);
+
   return (
     <>
       <Helmet>
@@ -34,7 +50,7 @@ const CollectionsPage = () => {
               </p>
             </motion.div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
               {collections.map((collection, index) => {
                 const count = perfumes.filter(p => p.collection === collection.id).length;
                 return (

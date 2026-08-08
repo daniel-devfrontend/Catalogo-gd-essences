@@ -6,6 +6,7 @@ import { Button, Sheet, SheetContent, SheetTrigger } from '@/components/ui';
 const Header = () => {
   const location = useLocation();
   const [isOpen, setIsOpen] = React.useState(false);
+  const isHome = location.pathname === '/';
 
   const navItems = [
     { name: 'Home', path: '/' },
@@ -17,14 +18,21 @@ const Header = () => {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className={`sticky top-0 z-50 w-full border-b border-border ${isHome ? 'bg-transparent' : 'bg-background/95'} backdrop-blur supports-[backdrop-filter]:bg-background/60`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-24 items-center justify-between">
-          <Link to="/" className="flex items-center">
-            <img 
-              src="https://horizons-cdn.hostinger.com/c05faf8a-437d-406d-99ba-9cff3f611d9b/f817902bcc22ce898fb35b749bf91d9f.png" 
-              alt="G&D Essences Logo" 
-              className="h-12 w-auto object-contain"
+          <Link to="/" className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-3">
+              <img
+                src={`${import.meta.env.BASE_URL}Logos/LogoWhite2-transparent.png`}
+                alt="G&D Essences"
+                className="h-20 w-auto object-contain"
+              />
+            </div>
+            <img
+              src={`${import.meta.env.BASE_URL}Logos/LogoWhite2-transparent.png`}
+              alt="G&D Essences"
+              className="h-12 w-auto object-contain sm:hidden"
             />
           </Link>
 

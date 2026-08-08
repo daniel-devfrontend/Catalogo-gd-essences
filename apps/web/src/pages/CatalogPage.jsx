@@ -3,15 +3,30 @@ import { Helmet } from 'react-helmet';
 import { useSearchParams } from 'react-router-dom';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { Input, Button, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Header, Footer, PerfumeCard, PerfumeDetailModal } from '@/components';
-import { perfumes, collections } from '@/data/perfumes.js';
+import { getCollections, getProducts } from '@/lib/dataService';
 
 const CatalogPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [perfumes, setPerfumes] = React.useState([]);
+  const [collections, setCollections] = React.useState([]);
   const [selectedPerfume, setSelectedPerfume] = React.useState(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [selectedCollection, setSelectedCollection] = React.useState(searchParams.get('collection') || 'all');
   const [sortBy, setSortBy] = React.useState('name');
+
+  React.useEffect(() => {
+    const loadData = async () => {
+      const [availablePerfumes, availableCollections] = await Promise.all([
+        getProducts(),
+        getCollections(),
+      ]);
+      setPerfumes(availablePerfumes.filter((product) => product.status !== 'draft'));
+      setCollections(availableCollections);
+    };
+
+    loadData();
+  }, []);
 
   const handlePerfumeClick = (perfume) => {
     setSelectedPerfume(perfume);
@@ -22,32 +37,34 @@ const CatalogPage = () => {
     let filtered = [...perfumes];
 
     if (selectedCollection !== 'all') {
-      filtered = filtered.filter(p => p.collection === selectedCollection);
+      filtered = filtered.filter((p) => p.collection === selectedCollection);
     }
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(p =>
-        p.name.toLowerCase().includes(query) ||
-        p.description.toLowerCase().includes(query) ||
-        p.collection.toLowerCase().includes(query)
-      );
+      filtered = filtered.filter((p) => {
+        const name = p.name?.toLowerCase() || '';
+        const description = p.description?.toLowerCase() || '';
+        const collection = p.collection?.toLowerCase() || '';
+
+        return name.includes(query) || description.includes(query) || collection.includes(query);
+      });
     }
 
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'price-asc':
-          return a.price - b.price;
+          return (a.price || 0) - (b.price || 0);
         case 'price-desc':
-          return b.price - a.price;
+          return (b.price || 0) - (a.price || 0);
         case 'name':
         default:
-          return a.name.localeCompare(b.name);
+          return (a.name || '').localeCompare(b.name || '');
       }
     });
 
     return filtered;
-  }, [searchQuery, selectedCollection, sortBy]);
+  }, [perfumes, searchQuery, selectedCollection, sortBy]);
 
   return (
     <>
@@ -131,13 +148,14 @@ const CatalogPage = () => {
             </div>
 
             {filteredPerfumes.length > 0 ? (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
                 {filteredPerfumes.map((perfume) => (
-                  <PerfumeCard
-                    key={perfume.id}
-                    perfume={perfume}
-                    onClick={() => handlePerfumeClick(perfume)}
-                  />
+                  <div key={perfume.id} className="w-full">
+                    <PerfumeCard
+                      perfume={perfume}
+                      onClick={() => handlePerfumeClick(perfume)}
+                    />
+                  </div>
                 ))}
               </div>
             ) : (

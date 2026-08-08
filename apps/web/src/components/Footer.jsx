@@ -5,8 +5,8 @@ const Footer = () => {
   return <footer className="bg-primary text-primary-foreground border-t border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          <div>
-            <img src="https://horizons-cdn.hostinger.com/c05faf8a-437d-406d-99ba-9cff3f611d9b/f817902bcc22ce898fb35b749bf91d9f.png" alt="G&D Essences Logo" className="h-10 w-auto object-contain mb-6 invert brightness-0" />
+          <div className="flex flex-col items-start">
+            <img src={`${import.meta.env.BASE_URL}Logos/LogoWhite2-transparent.png`} alt="G&D Essences Logo" className="h-[55px] w-auto object-contain mb-6 filter invert" />
             <p className="text-sm leading-relaxed text-primary-foreground/70 max-w-xs">
               En G&D Essences ofrecemos fragancias de buena calidad inspiradas en el lujo moderno, pensadas para quienes desean un aroma elegante a un precio accesible. Perfumes con estilo, esencia y personalidad. G&D Essences: tu aroma, tu estilo.
             </p>

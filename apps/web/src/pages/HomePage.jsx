@@ -4,10 +4,19 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { Button, Header, Footer, PerfumeCard, PerfumeDetailModal } from '@/components';
-import { perfumes } from '@/data/perfumes.js';
+import { getProducts } from '@/lib/dataService';
 const HomePage = () => {
+  const [perfumes, setPerfumes] = React.useState([]);
   const [selectedPerfume, setSelectedPerfume] = React.useState(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+  React.useEffect(() => {
+    const loadPerfumes = async () => {
+      const availablePerfumes = await getProducts();
+      setPerfumes(availablePerfumes);
+    };
+
+    loadPerfumes();
+  }, []);
   // Selección aleatoria diaria de 3 perfumes
   function getDailyRandomPerfumes(perfumes, count = 3) {
     // Usar la fecha como semilla para que cambie cada día
@@ -25,7 +34,7 @@ const HomePage = () => {
     }
     return arr.slice(0, count);
   }
-  const featuredPerfumes = getDailyRandomPerfumes(perfumes, 3);
+  const featuredPerfumes = React.useMemo(() => getDailyRandomPerfumes(perfumes, 4), [perfumes]);
   const handlePerfumeClick = perfume => {
     setSelectedPerfume(perfume);
     setIsModalOpen(true);
@@ -42,8 +51,8 @@ const HomePage = () => {
         <main className="flex-1">
           <section className="relative min-h-[90dvh] flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0 z-0">
-              <img src="https://images.unsplash.com/photo-1688297029642-a69d7684ff7a?q=80&w=2000" alt="Luxury perfume aesthetic" className="w-full h-full object-cover object-center" />
-              <div className="absolute inset-0 bg-black/40"></div>
+              <img src="https://images.unsplash.com/photo-1688297029642-a69d7684ff7a?q=80&w=2000" alt="Luxury perfume aesthetic" className="w-full h-full object-cover object-center filter brightness-75" />
+              <div className="absolute inset-0 bg-black/60"></div>
             </div>
 
             <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -60,11 +69,11 @@ const HomePage = () => {
                 <span className="block text-white/80 text-sm tracking-[0.3em] uppercase mb-6 font-medium">
                   Catalogo Virtual
                 </span>
-                <h1 className="text-5xl md:text-7xl lg:text-8xl font-medium text-white mb-8 leading-tight" style={{
+                <h1 className="text-[2.15rem] md:text-[3.56rem] lg:text-[4.28rem] font-medium text-white mb-8 leading-tight" style={{
                 fontFamily: 'Playfair Display, serif',
                 textBalance: 'balance'
               }}>
-                  La esencia de la<br />elegancia absoluta
+                  Tus fragancias favoritas<br /> en un solo lugar
                 </h1>
                 <div className="flex flex-col sm:flex-row gap-6 justify-center mt-12">
                   <Button asChild size="lg" className="rounded-none bg-white text-black hover:bg-white/90 h-14 px-10 text-sm tracking-widest uppercase font-medium transition-all duration-300">
@@ -90,15 +99,17 @@ const HomePage = () => {
             }} transition={{
               duration: 0.8
             }}>
-                <img src="https://horizons-cdn.hostinger.com/c05faf8a-437d-406d-99ba-9cff3f611d9b/f817902bcc22ce898fb35b749bf91d9f.png" alt="G&D Essences Logo" className="h-16 w-auto object-contain mx-auto mb-12" />
-                <h2 className="text-3xl md:text-4xl font-medium mb-8 text-foreground" style={{
-                fontFamily: 'Playfair Display, serif',
+                <div className="mx-auto mb-4 flex items-center justify-center">
+                  <img src={`${import.meta.env.BASE_URL}Logos/LogoWhite2-transparent.png`} alt="G&D Essences Logo" className="max-h-[240px] md:max-h-[360px] w-auto object-contain filter brightness-100 drop-shadow-lg" />
+                </div>
+                <h2 className="text-3xl md:text-4xl font-bold mb-8 text-foreground" style={{
+                fontFamily: 'Cormorant Garamond, Playfair Display, serif',
                 textBalance: 'balance'
               }}>
-                  G&D Essences lujo en cada gota
+                  "La esencia de las grandes marcas, ahora a tu alcance"
                 </h2>
                 <p className="text-lg md:text-xl text-muted-foreground leading-relaxed font-light">
-                  G&D Essences ofrece perfumes de calidad top quality para quienes buscan lujo auténtico a un costo accesible. Seleccionamos fragancias exclusivas con excelente fijación y aromas que destacan sin esfuerzo. Cada esencia refleja elegancia, personalidad y una experiencia premium al alcance de más personas. G&D Essences: lujo en cada gota.
+                  G&D Essences ofrece perfumes de calidad top quality para quienes buscan lujo auténtico a un costo accesible. Seleccionamos fragancias exclusivas elaboradas con materias primas importadas, logrando aromas un 90% a 99% idénticos al original. Al ser Eau de Parfum o Extrait de Parfum, aseguran una alta concentración y una fijación prolongada en la piel de 6 a 12 horas. Cada esencia refleja elegancia, personalidad y una experiencia premium al alcance de más personas. G&D Essences: lujo en cada gota.
                 </p>
               </motion.div>
             </div>
@@ -141,7 +152,7 @@ const HomePage = () => {
                 </motion.div>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-8">
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-8">
                 {featuredPerfumes.map(perfume => <PerfumeCard key={perfume.id} perfume={perfume} onClick={() => handlePerfumeClick(perfume)} />)}
               </div>
             </div>
