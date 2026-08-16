@@ -21,7 +21,7 @@ const Footer = () => {
             <div className="mt-8">
               <span className="text-sm font-semibold tracking-widest uppercase block mb-6">Síguenos</span>
               <div className="flex space-x-4">
-                <a href="https://www.instagram.com/gd_essences?igsh=dThldjUwOTJwNTN1" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full border border-primary-foreground/20 hover:bg-primary-foreground hover:text-primary flex items-center justify-center transition-all duration-300" aria-label="Instagram">
+                <a href="https://www.instagram.com/gydessences?igsh=Z2pxd3k5Z2tncnl4" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full border border-primary-foreground/20 hover:bg-primary-foreground hover:text-primary flex items-center justify-center transition-all duration-300" aria-label="Instagram">
                   <Instagram className="h-4 w-4" />
                 </a>
                 <a href="https://www.tiktok.com/@gdessences?_r=1&_t=ZN-98udqKmF0ty" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full border border-primary-foreground/20 hover:bg-primary-foreground hover:text-primary flex items-center justify-center transition-all duration-300" aria-label="TikTok">

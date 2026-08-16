@@ -8,7 +8,7 @@ function ContactPage() {
     {
       name: 'Instagram',
       icon: Instagram,
-      url: 'https://www.instagram.com/gd_essences?igsh=dThldjUwOTJwNTN1',
+      url: 'https://www.instagram.com/gydessences?igsh=Z2pxd3k5Z2tncnl4',
       handle: '@gd_essences',
       description: 'Descubre nuestras últimas novedades y estética visual.'
     }, {
@@ -22,7 +22,7 @@ function ContactPage() {
     }, {
       name: 'Facebook',
       icon: Facebook,
-      url: 'https://www.facebook.com/share/1EC7yn14tk/',
+      url: 'https://www.facebook.com/share/1FL6hQt1Ri/',
       handle: 'G&D Essences',
       description: 'Únete a nuestra comunidad y mantente informado.'
     }
