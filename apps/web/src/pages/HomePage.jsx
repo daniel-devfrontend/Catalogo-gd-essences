@@ -63,7 +63,7 @@ const HomePage = () => {
         <main className="flex-1">
           <section className="relative min-h-[90dvh] flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0 z-0">
-              <img src="https://images.unsplash.com/photo-1688297029642-a69d7684ff7a?q=80&w=1600&auto=format&fit=crop" alt="Luxury perfume aesthetic" className="w-full h-full object-cover object-center filter brightness-75" loading="eager" fetchPriority="high" />
+              <img src="https://images.unsplash.com/photo-1688297029642-a69d7684ff7a?q=80&w=1600&auto=format&fit=crop" alt="Luxury perfume aesthetic" className="w-full h-full object-cover object-center filter brightness-75" loading="eager" />
               <div className="absolute inset-0 bg-black/60"></div>
             </div>
 

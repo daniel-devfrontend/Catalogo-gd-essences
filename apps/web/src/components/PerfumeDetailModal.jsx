@@ -3,6 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Ba
 import { Link } from 'react-router-dom';
 
 const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
+  if (!perfume) return null;
+
+  const safePerfume = perfume || {};
+
   const resolveImageSrc = (image) => {
     if (!image) return '';
     if (/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(image)) {
@@ -38,7 +42,7 @@ const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
   };
   const getYoutubeThumbnailUrl = (id) => (id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '');
 
-  const videoId = getYoutubeVideoId(perfume.video_url || perfume.videoUrl || '');
+  const videoId = getYoutubeVideoId(safePerfume.video_url || safePerfume.videoUrl || '');
   const videoEmbedUrl = getYoutubeEmbedUrl(videoId);
   const videoThumbnailUrl = getYoutubeThumbnailUrl(videoId);
 
@@ -87,9 +91,9 @@ const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
   };
 
   const galleryItems = React.useMemo(() => {
-    const images = Array.isArray(perfume.images) && perfume.images.length
-      ? perfume.images
-      : [perfume.image];
+    const images = Array.isArray(safePerfume.images) && safePerfume.images.length
+      ? safePerfume.images
+      : [safePerfume.image];
 
     const items = images.filter(Boolean).map((image) => ({
       type: 'image',
@@ -105,11 +109,9 @@ const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
     }
 
     return items.length ? items : [{ type: 'image', src: `${import.meta.env.BASE_URL}perfumes/placeholder.svg` }];
-  }, [perfume, videoEmbedUrl, videoThumbnailUrl]);
+  }, [safePerfume, videoEmbedUrl, videoThumbnailUrl]);
 
   const activeItem = galleryItems[activeImage] || galleryItems[0];
-
-  if (!perfume) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
