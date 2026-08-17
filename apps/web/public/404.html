@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirigiendo...</title>
+    <script>
+      (() => {
+        const repoBase = '/Catalogo-gd-essences';
+        const pathname = window.location.pathname;
+        const search = window.location.search || '';
+        const hash = window.location.hash || '';
+
+        if (pathname === repoBase || pathname === repoBase + '/') {
+          return;
+        }
+
+        const route = pathname.startsWith(repoBase)
+          ? pathname.slice(repoBase.length) || '/'
+          : pathname;
+
+        const target = `${window.location.origin}${repoBase}#${route}${search}${hash}`;
+        window.location.replace(target);
+      })();
+    </script>
+  </head>
+  <body>
+    <p>Redirigiendo...</p>
+  </body>
+</html>

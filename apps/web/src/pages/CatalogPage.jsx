@@ -14,19 +14,36 @@ const CatalogPage = () => {
   const [searchQuery, setSearchQuery] = React.useState('');
   const [selectedCollection, setSelectedCollection] = React.useState(searchParams.get('collection') || 'all');
   const [sortBy, setSortBy] = React.useState('name');
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [visibleCount, setVisibleCount] = React.useState(12);
+  const pageSize = 12;
+  const observerRef = React.useRef(null);
 
   React.useEffect(() => {
     const loadData = async () => {
-      const [availablePerfumes, availableCollections] = await Promise.all([
-        getProducts(),
-        getCollections(),
-      ]);
-      setPerfumes(availablePerfumes.filter((product) => product.status !== 'draft'));
-      setCollections(availableCollections);
+      setIsLoading(true);
+      try {
+        const [availablePerfumes, availableCollections] = await Promise.all([
+          getProducts(),
+          getCollections(),
+        ]);
+        setPerfumes((Array.isArray(availablePerfumes) ? availablePerfumes : []).filter((product) => product.status !== 'draft'));
+        setCollections(Array.isArray(availableCollections) ? availableCollections : []);
+      } catch (error) {
+        console.warn('No se pudo cargar catálogo remoto, usando catálogo local.', error);
+        setPerfumes([]);
+        setCollections([]);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadData();
   }, []);
+
+  React.useEffect(() => {
+    setVisibleCount(12);
+  }, [searchQuery, selectedCollection, sortBy]);
 
   const handlePerfumeClick = (perfume) => {
     setSelectedPerfume(perfume);
@@ -65,6 +82,31 @@ const CatalogPage = () => {
 
     return filtered;
   }, [perfumes, searchQuery, selectedCollection, sortBy]);
+
+  const visiblePerfumes = React.useMemo(() => {
+    return filteredPerfumes.slice(0, visibleCount);
+  }, [filteredPerfumes, visibleCount]);
+
+  const hasMore = visibleCount < filteredPerfumes.length;
+
+  React.useEffect(() => {
+    if (!hasMore || isLoading) return;
+
+    const node = observerRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + pageSize, filteredPerfumes.length));
+        }
+      },
+      { rootMargin: '200px' }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasMore, isLoading, filteredPerfumes.length]);
 
   return (
     <>
@@ -130,7 +172,7 @@ const CatalogPage = () => {
 
               <div className="mt-6 flex items-center justify-between text-xs tracking-widest uppercase text-muted-foreground font-medium">
                 <span>
-                  {filteredPerfumes.length} Resultados
+                  {isLoading ? 'Cargando...' : `${filteredPerfumes.length} Resultados`}
                 </span>
                 {(searchQuery || selectedCollection !== 'all') && (
                   <button
@@ -147,17 +189,44 @@ const CatalogPage = () => {
               </div>
             </div>
 
-            {filteredPerfumes.length > 0 ? (
+            {isLoading ? (
               <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
-                {filteredPerfumes.map((perfume) => (
-                  <div key={perfume.id} className="w-full">
-                    <PerfumeCard
-                      perfume={perfume}
-                      onClick={() => handlePerfumeClick(perfume)}
-                    />
+                {Array.from({ length: pageSize }).map((_, index) => (
+                  <div key={`catalog-skeleton-${index}`} className="animate-pulse">
+                    <div className="bg-muted border border-border aspect-[4/5]" />
+                    <div className="mt-4 h-5 bg-muted w-2/3" />
+                    <div className="mt-2 h-3 bg-muted w-1/2" />
+                    <div className="mt-4 h-4 bg-muted w-1/3" />
                   </div>
                 ))}
               </div>
+            ) : filteredPerfumes.length > 0 ? (
+              <>
+                <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
+                  {visiblePerfumes.map((perfume) => (
+                    <div key={perfume.id} className="w-full">
+                      <PerfumeCard
+                        perfume={perfume}
+                        onClick={() => handlePerfumeClick(perfume)}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-10 flex items-center justify-center gap-3">
+                  {hasMore ? (
+                    <div ref={observerRef} className="h-10 w-full flex items-center justify-center">
+                      <span className="text-xs tracking-widest uppercase text-muted-foreground">
+                        Desplázate para ver más
+                      </span>
+                    </div>
+                  ) : (
+                    <span className="text-sm text-muted-foreground tracking-widest uppercase">
+                      Ya viste todo el catálogo
+                    </span>
+                  )}
+                </div>
+              </>
             ) : (
               <div className="text-center py-32 border border-border bg-muted/10">
                 <SlidersHorizontal className="h-12 w-12 text-muted-foreground/30 mx-auto mb-6" />

@@ -15,7 +15,17 @@ const Header = () => {
     { name: 'Contacto', path: '/contacto' }
   ];
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => {
+    if (path === '/') {
+      return location.pathname === '/';
+    }
+
+    if (path === '/colecciones') {
+      return location.pathname === '/colecciones' || location.pathname.startsWith('/coleccion/');
+    }
+
+    return location.pathname === path;
+  };
 
   return (
     <header className={`sticky top-0 z-50 w-full border-b border-border ${isHome ? 'bg-transparent' : 'bg-background/95'} backdrop-blur supports-[backdrop-filter]:bg-background/60`}>

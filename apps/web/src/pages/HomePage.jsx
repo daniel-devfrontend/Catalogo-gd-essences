@@ -5,14 +5,26 @@ import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { Button, Header, Footer, PerfumeCard, PerfumeDetailModal } from '@/components';
 import { getProducts } from '@/lib/dataService';
+import { perfumes as localPerfumes } from '@/data/perfumes.js';
+
 const HomePage = () => {
   const [perfumes, setPerfumes] = React.useState([]);
   const [selectedPerfume, setSelectedPerfume] = React.useState(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
+
   React.useEffect(() => {
     const loadPerfumes = async () => {
-      const availablePerfumes = await getProducts();
-      setPerfumes(availablePerfumes);
+      setIsLoading(true);
+      try {
+        const availablePerfumes = await getProducts();
+        setPerfumes(Array.isArray(availablePerfumes) && availablePerfumes.length ? availablePerfumes : localPerfumes);
+      } catch (error) {
+        console.warn('No se pudieron cargar los perfumes desde Supabase, usando catálogo local.', error);
+        setPerfumes(localPerfumes);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadPerfumes();
@@ -51,7 +63,7 @@ const HomePage = () => {
         <main className="flex-1">
           <section className="relative min-h-[90dvh] flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0 z-0">
-              <img src="https://images.unsplash.com/photo-1688297029642-a69d7684ff7a?q=80&w=2000" alt="Luxury perfume aesthetic" className="w-full h-full object-cover object-center filter brightness-75" />
+              <img src="https://images.unsplash.com/photo-1688297029642-a69d7684ff7a?q=80&w=1600&auto=format&fit=crop" alt="Luxury perfume aesthetic" className="w-full h-full object-cover object-center filter brightness-75" loading="eager" fetchPriority="high" />
               <div className="absolute inset-0 bg-black/60"></div>
             </div>
 
@@ -152,9 +164,21 @@ const HomePage = () => {
                 </motion.div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-8">
-                {featuredPerfumes.map(perfume => <PerfumeCard key={perfume.id} perfume={perfume} onClick={() => handlePerfumeClick(perfume)} />)}
-              </div>
+              {isLoading ? (
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-8">
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <div key={`skeleton-${index}`} className="animate-pulse">
+                      <div className="bg-muted border border-border aspect-[4/5]" />
+                      <div className="mt-4 h-4 bg-muted w-3/4" />
+                      <div className="mt-2 h-3 bg-muted w-1/2" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-8">
+                  {featuredPerfumes.map(perfume => <PerfumeCard key={perfume.id} perfume={perfume} onClick={() => handlePerfumeClick(perfume)} />)}
+                </div>
+              )}
             </div>
           </section>
         </main>

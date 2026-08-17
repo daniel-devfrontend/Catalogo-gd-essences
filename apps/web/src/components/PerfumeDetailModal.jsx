@@ -3,8 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Ba
 import { Link } from 'react-router-dom';
 
 const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
-  if (!perfume) return null;
-
   const resolveImageSrc = (image) => {
     if (!image) return '';
     if (/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(image)) {
@@ -110,6 +108,8 @@ const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
   }, [perfume, videoEmbedUrl, videoThumbnailUrl]);
 
   const activeItem = galleryItems[activeImage] || galleryItems[0];
+
+  if (!perfume) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500">
+  <rect width="1200" height="1500" fill="#f4efe8"/>
+  <rect x="80" y="80" width="1040" height="1340" rx="45" fill="#ffffff" stroke="#d8c8aa" stroke-width="8"/>
+  <circle cx="600" cy="610" r="260" fill="#f2e7d5"/>
+  <path d="M600 370c-90 100-155 185-155 280 0 95 70 175 155 175s155-80 155-175c0-95-65-180-155-280Z" fill="#2f241d"/>
+  <path d="M470 760h260" stroke="#8b6b3f" stroke-width="14" stroke-linecap="round"/>
+  <path d="M470 830h260" stroke="#8b6b3f" stroke-width="14" stroke-linecap="round"/>
+  <path d="M470 900h200" stroke="#8b6b3f" stroke-width="14" stroke-linecap="round"/>
+  <text x="600" y="1230" text-anchor="middle" font-family="Georgia, serif" font-size="56" fill="#2f241d">G&amp;D Essences</text>
+</svg>

@@ -26,6 +26,9 @@ const PerfumeCard = ({ perfume, onClick }) => {
           <img
             src={imageSrc}
             alt={perfume.name}
+            loading="lazy"
+            decoding="async"
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
             onError={(event) => {
               event.currentTarget.src = `${import.meta.env.BASE_URL}perfumes/placeholder.svg`;
             }}

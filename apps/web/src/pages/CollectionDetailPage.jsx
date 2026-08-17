@@ -47,6 +47,10 @@ const CollectionDetailPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <Helmet>
+        <title>{collection.title} - G&D Essences</title>
+        <meta name="description" content={collection.description} />
+      </Helmet>
       <Header />
       <main className="flex-1 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

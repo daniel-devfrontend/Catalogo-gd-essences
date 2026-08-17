@@ -1,5 +1,5 @@
 import React from 'react';
-import { Route, Routes, BrowserRouter as Router } from 'react-router-dom';
+import { Route, Routes, HashRouter as Router } from 'react-router-dom';
 import { Toaster, ScrollToTop } from '@/components';
 import HomePage from './pages/HomePage.jsx';
 import CatalogPage from './pages/CatalogPage.jsx';
@@ -10,7 +10,7 @@ import AdminPage from './pages/AdminPage.jsx';
 
 function App() {
   return (
-    <Router basename={import.meta.env.BASE_URL}>
+    <Router>
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<HomePage />} />
