@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gd-essences-catalog-v3';
+const CACHE_NAME = 'gd-essences-catalog-v4';
 const APP_ROOT = '/Catalogo-gd-essences/';
 
 self.addEventListener('install', (event) => {
