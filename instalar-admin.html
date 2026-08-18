@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="manifest" href="./admin-manifest.webmanifest?v=1" />
+    <link rel="icon" type="image/png" href="./Logos/LogoApp-512.png?v=4" />
+    <title>G&D Admin</title>
+    <style>
+      :root { color-scheme: dark; font-family: Georgia, serif; }
+      body { min-height: 100vh; margin: 0; display: grid; place-items: center; background: #000; color: #fff; text-align: center; }
+      main { width: min(90vw, 360px); }
+      img { width: 132px; height: 132px; object-fit: contain; margin-bottom: 24px; }
+      h1 { margin: 0 0 10px; font-size: 24px; font-weight: 500; }
+      p { margin: 0 0 24px; color: #aaa; font: 14px Arial, sans-serif; line-height: 1.5; }
+      button, a { display: inline-block; border: 1px solid #777; background: #fff; color: #000; padding: 12px 18px; font: 600 12px Arial, sans-serif; letter-spacing: .12em; text-decoration: none; text-transform: uppercase; cursor: pointer; }
+      a { display: none; margin-top: 14px; border-color: #444; background: transparent; color: #fff; }
+      #message { margin-top: 18px; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img src="./Logos/LogoApp-512.png?v=4" alt="G&D Admin" />
+      <h1>G&D Admin</h1>
+      <p>Instala el acceso privado para administrar el catálogo.</p>
+      <button id="install-button" type="button">Instalar admin</button>
+      <a id="open-admin" href="./#/admin">Abrir admin</a>
+      <p id="message" aria-live="polite"></p>
+    </main>
+    <script>
+      if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js?v=2').catch(() => {});
+      let deferredPrompt;
+      const installButton = document.getElementById('install-button');
+      const openAdmin = document.getElementById('open-admin');
+      const message = document.getElementById('message');
+
+      window.addEventListener('beforeinstallprompt', (event) => {
+        event.preventDefault();
+        deferredPrompt = event;
+      });
+
+      installButton.addEventListener('click', async () => {
+        if (!deferredPrompt) {
+          message.textContent = 'Abre el menu del navegador y selecciona "Instalar aplicación".';
+          openAdmin.style.display = 'inline-block';
+          return;
+        }
+
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        installButton.style.display = 'none';
+      });
+    </script>
+  </body>
+</html>
