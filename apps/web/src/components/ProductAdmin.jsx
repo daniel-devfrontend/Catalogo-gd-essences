@@ -186,12 +186,12 @@ const ProductAdmin = () => {
   };
 
   const handleDeleteProduct = async (product) => {
-    if (!window.confirm(`¿Mover "${product.name}" a borradores?`)) {
+    if (!window.confirm(`¿Eliminar definitivamente "${product.name}"?`)) {
       return;
     }
 
     setIsDeleting(true);
-    setDeletingLabel(`Moviendo "${product.name}" a borradores...`);
+    setDeletingLabel(`Eliminando "${product.name}"...`);
 
     try {
       await deleteProduct(product.id);
@@ -200,12 +200,12 @@ const ProductAdmin = () => {
       if (editingProductId === product.id) {
         cancelEdit();
       }
-      setMessage('Producto movido a borradores. Será eliminado definitivamente en 7 días.');
-      setToast({ type: 'success', text: 'Borrando producto...' });
+      setMessage('Producto eliminado correctamente.');
+      setToast({ type: 'success', text: 'Producto eliminado.' });
     } catch (error) {
       console.error(error);
-      setMessage('No se pudo mover el producto a borradores.');
-      setToast({ type: 'error', text: 'No se pudo mover el producto a borradores.' });
+      setMessage('No se pudo eliminar el producto.');
+      setToast({ type: 'error', text: 'No se pudo eliminar el producto.' });
     } finally {
       setIsDeleting(false);
       setDeletingLabel('');

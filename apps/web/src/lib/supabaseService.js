@@ -107,24 +107,18 @@ export const deleteCollection = async (collectionId) => {
     throw new Error('Supabase no está configurado.');
   }
 
-  const deletedAt = new Date().toISOString();
   const slugifiedId = String(collectionId || '').trim().toLowerCase().replace(/\s+/g, '-');
 
   const { data: productsToDelete, error: fetchError } = await supabase
     .from('products')
-    .select('id, collection')
+    .select('id')
     .or(`collection.eq.${collectionId},collection.eq.${slugifiedId}`);
 
   if (fetchError) throw fetchError;
 
-  if (Array.isArray(productsToDelete) && productsToDelete.length) {
-    const productUpdates = productsToDelete.map(({ id }) => ({
-      id,
-      status: 'draft',
-      deleted_at: deletedAt,
-    }));
-
-    const { error: productsError } = await supabase.from('products').upsert(productUpdates, { onConflict: 'id' });
+  const productIds = Array.isArray(productsToDelete) ? productsToDelete.map(({ id }) => id).filter(Boolean) : [];
+  if (productIds.length) {
+    const { error: productsError } = await supabase.from('products').delete().in('id', productIds);
     if (productsError) throw productsError;
   }
 
@@ -246,11 +240,10 @@ export const deleteProduct = async (productId) => {
     throw new Error('Supabase no está configurado.');
   }
 
-  const deletedAt = new Date().toISOString();
-  const { data, error } = await supabase.from('products').upsert({ id: productId, status: 'draft', deleted_at: deletedAt }, { onConflict: 'id' }).select('*');
+  const { error } = await supabase.from('products').delete().eq('id', productId);
   if (error) throw error;
   clearCache(PRODUCT_CACHE_KEY);
-  return data;
+  return getProducts();
 };
 
 export const restoreProduct = async (productId) => {
