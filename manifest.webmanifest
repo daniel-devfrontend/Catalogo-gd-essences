@@ -2,21 +2,21 @@
   "name": "G&D Essences",
   "short_name": "G&D Essences",
   "description": "Catalogo de fragancias G&D Essences",
-  "start_url": "./",
+  "start_url": "./#/admin",
   "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
   "icons": [
     {
-      "src": "./Logos/LogoWhite1.jpeg",
-      "sizes": "1280x1280",
+      "src": "./Logos/LogoApp.jpeg",
+      "sizes": "796x807",
       "type": "image/jpeg",
       "purpose": "any"
     },
     {
-      "src": "./Logos/LogoBlack1.jpeg",
-      "sizes": "1280x1280",
+      "src": "./Logos/LogoApp.jpeg",
+      "sizes": "796x807",
       "type": "image/jpeg",
       "purpose": "any"
     }
