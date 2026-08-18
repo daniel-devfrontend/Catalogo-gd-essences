@@ -108,11 +108,12 @@ export const deleteCollection = async (collectionId) => {
   }
 
   const deletedAt = new Date().toISOString();
+  const slugifiedId = String(collectionId || '').trim().toLowerCase().replace(/\s+/g, '-');
 
   const { data: productsToDelete, error: fetchError } = await supabase
     .from('products')
-    .select('id')
-    .eq('collection', collectionId);
+    .select('id, collection')
+    .or(`collection.eq.${collectionId},collection.eq.${slugifiedId}`);
 
   if (fetchError) throw fetchError;
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button, Input, Label, Textarea, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Badge } from '@/components/ui';
-import { getProducts, createOrUpdateProduct, uploadProductImage, addImagesToProduct, getCollections, createCollection, deleteProduct, deleteProductPermanently, restoreProduct } from '@/lib/dataService';
+import { getProducts, createOrUpdateProduct, uploadProductImage, addImagesToProduct, getCollections, createCollection, deleteCollection, deleteProduct, deleteProductPermanently, restoreProduct } from '@/lib/dataService';
 import { resolveProductImage } from '@/lib/productImageResolver';
 
 const emptyForm = {
@@ -29,6 +29,8 @@ const ProductAdmin = () => {
   const [message, setMessage] = React.useState('');
   const [toast, setToast] = React.useState(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isDeleting, setIsDeleting] = React.useState(false);
+  const [deletingLabel, setDeletingLabel] = React.useState('');
   const [viewMode, setViewMode] = React.useState('list');
   const [collectionSearch, setCollectionSearch] = React.useState('');
   const [productFilter, setProductFilter] = React.useState('published');
@@ -188,6 +190,9 @@ const ProductAdmin = () => {
       return;
     }
 
+    setIsDeleting(true);
+    setDeletingLabel(`Moviendo "${product.name}" a borradores...`);
+
     try {
       await deleteProduct(product.id);
       const availableProducts = await getProducts();
@@ -196,9 +201,14 @@ const ProductAdmin = () => {
         cancelEdit();
       }
       setMessage('Producto movido a borradores. Será eliminado definitivamente en 7 días.');
+      setToast({ type: 'success', text: 'Borrando producto...' });
     } catch (error) {
       console.error(error);
       setMessage('No se pudo mover el producto a borradores.');
+      setToast({ type: 'error', text: 'No se pudo mover el producto a borradores.' });
+    } finally {
+      setIsDeleting(false);
+      setDeletingLabel('');
     }
   };
 
@@ -207,14 +217,22 @@ const ProductAdmin = () => {
       return;
     }
 
+    setIsDeleting(true);
+    setDeletingLabel(`Restaurando "${product.name}"...`);
+
     try {
       await restoreProduct(product.id);
       const availableProducts = await getProducts();
       setProducts(availableProducts);
       setMessage('Producto restaurado y publicado nuevamente.');
+      setToast({ type: 'success', text: 'Producto restaurado.' });
     } catch (error) {
       console.error(error);
       setMessage('No se pudo restaurar el producto.');
+      setToast({ type: 'error', text: 'No se pudo restaurar el producto.' });
+    } finally {
+      setIsDeleting(false);
+      setDeletingLabel('');
     }
   };
 
@@ -222,6 +240,9 @@ const ProductAdmin = () => {
     if (!window.confirm(`¿Eliminar definitivamente "${product.name}"? Esta acción no se puede deshacer.`)) {
       return;
     }
+
+    setIsDeleting(true);
+    setDeletingLabel(`Eliminando definitivamente "${product.name}"...`);
 
     try {
       await deleteProductPermanently(product.id);
@@ -231,9 +252,14 @@ const ProductAdmin = () => {
         cancelEdit();
       }
       setMessage('Producto eliminado definitivamente.');
+      setToast({ type: 'success', text: 'Producto eliminado definitivamente.' });
     } catch (error) {
       console.error(error);
       setMessage('No se pudo eliminar el producto definitivamente.');
+      setToast({ type: 'error', text: 'No se pudo eliminar el producto definitivamente.' });
+    } finally {
+      setIsDeleting(false);
+      setDeletingLabel('');
     }
   };
 
@@ -284,6 +310,9 @@ const ProductAdmin = () => {
       return;
     }
 
+    setIsDeleting(true);
+    setDeletingLabel(`Eliminando la colección "${collection.title}"...`);
+
     try {
       await deleteCollection(collection.id);
       const [updatedCollections, updatedProducts] = await Promise.all([
@@ -294,9 +323,14 @@ const ProductAdmin = () => {
       setCollections(updatedCollections);
       setProducts(updatedProducts);
       setMessage('Colección eliminada y productos asociados movidos a borradores.');
+      setToast({ type: 'success', text: 'Colección eliminada.' });
     } catch (error) {
       console.error(error);
       setMessage('No se pudo eliminar la colección.');
+      setToast({ type: 'error', text: 'No se pudo eliminar la colección.' });
+    } finally {
+      setIsDeleting(false);
+      setDeletingLabel('');
     }
   };
 
@@ -340,6 +374,12 @@ const ProductAdmin = () => {
       </div>
 
       {message ? <p className="mb-6 text-sm text-foreground">{message}</p> : null}
+      {isDeleting ? (
+        <div className="mb-6 flex items-center gap-3 rounded-none border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-amber-600 border-t-transparent" aria-label="Eliminando" />
+          <span>{deletingLabel || 'Procesando...'}</span>
+        </div>
+      ) : null}
       {toast ? (
         <div className="fixed bottom-6 right-6 z-50 w-80 rounded-none border border-border bg-background p-4 shadow-lg">
           <div className={`rounded-none p-3 text-sm ${toast.type === 'success' ? 'bg-emerald-50 text-emerald-900' : 'bg-rose-50 text-rose-900'}`}>
@@ -452,7 +492,9 @@ const ProductAdmin = () => {
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <Button type="button" variant="outline" className="rounded-none" onClick={() => startEditingCollection(collection)}>Editar</Button>
-                          <Button type="button" variant="destructive" className="rounded-none" onClick={() => handleDeleteCollection(collection)}>Eliminar</Button>
+                          <Button type="button" variant="destructive" className="rounded-none" onClick={() => handleDeleteCollection(collection)} disabled={isDeleting}>
+                            {isDeleting ? 'Borrando...' : 'Eliminar'}
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -595,12 +637,18 @@ const ProductAdmin = () => {
                           <div className="mt-4 flex flex-wrap gap-2">
                             <Button type="button" variant="outline" className="rounded-none" onClick={() => startEditingProduct(product)}>Editar</Button>
                             {product.status === 'draft' ? (
-                              <Button type="button" variant="default" className="rounded-none" onClick={() => handleRestoreProduct(product)}>Restaurar</Button>
+                              <Button type="button" variant="default" className="rounded-none" onClick={() => handleRestoreProduct(product)} disabled={isDeleting}>
+                                {isDeleting ? 'Procesando...' : 'Restaurar'}
+                              </Button>
                             ) : (
-                              <Button type="button" variant="outline" className="rounded-none" onClick={() => handleDeleteProduct(product)}>Borrar</Button>
+                              <Button type="button" variant="outline" className="rounded-none" onClick={() => handleDeleteProduct(product)} disabled={isDeleting}>
+                                {isDeleting ? 'Borrando...' : 'Borrar'}
+                              </Button>
                             )}
                             {product.status === 'draft' ? (
-                              <Button type="button" variant="destructive" className="rounded-none" onClick={() => handleDeleteProductPermanently(product)}>Eliminar definitivamente</Button>
+                              <Button type="button" variant="destructive" className="rounded-none" onClick={() => handleDeleteProductPermanently(product)} disabled={isDeleting}>
+                                {isDeleting ? 'Borrando...' : 'Eliminar definitivamente'}
+                              </Button>
                             ) : null}
                           </div>
                         </div>
@@ -670,12 +718,18 @@ const ProductAdmin = () => {
                           <div className="flex flex-wrap gap-2">
                             <Button type="button" variant="outline" className="rounded-none" onClick={() => startEditingProduct(product)}>Editar</Button>
                             {product.status === 'draft' ? (
-                              <Button type="button" variant="default" className="rounded-none" onClick={() => handleRestoreProduct(product)}>Restaurar</Button>
+                              <Button type="button" variant="default" className="rounded-none" onClick={() => handleRestoreProduct(product)} disabled={isDeleting}>
+                                {isDeleting ? 'Procesando...' : 'Restaurar'}
+                              </Button>
                             ) : (
-                              <Button type="button" variant="outline" className="rounded-none" onClick={() => handleDeleteProduct(product)}>Borrar</Button>
+                              <Button type="button" variant="outline" className="rounded-none" onClick={() => handleDeleteProduct(product)} disabled={isDeleting}>
+                                {isDeleting ? 'Borrando...' : 'Borrar'}
+                              </Button>
                             )}
                             {product.status === 'draft' ? (
-                              <Button type="button" variant="destructive" className="rounded-none" onClick={() => handleDeleteProductPermanently(product)}>Eliminar definitivamente</Button>
+                              <Button type="button" variant="destructive" className="rounded-none" onClick={() => handleDeleteProductPermanently(product)} disabled={isDeleting}>
+                                {isDeleting ? 'Borrando...' : 'Eliminar definitivamente'}
+                              </Button>
                             ) : null}
                           </div>
                         </td>
