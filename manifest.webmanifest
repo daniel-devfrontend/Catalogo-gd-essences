@@ -9,10 +9,16 @@
   "theme_color": "#ffffff",
   "icons": [
     {
-      "src": "./Logos/LogoApp.jpeg",
-      "sizes": "796x807",
-      "type": "image/jpeg",
-      "purpose": "any"
+      "src": "./Logos/LogoApp-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./Logos/LogoApp-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "./Logos/LogoApp.jpeg",
