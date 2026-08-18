@@ -189,7 +189,7 @@ export const perfumes = [  // LATTAFA
   { id: 'paco-rabanne-fame', name: 'Fame', price: 27, description: 'Fragancia premium de Paco Rabanne añadida desde el catálogo mayor y disponible en G&D Essences.', image: '', collection: 'paco-rabanne' },
   { id: 'paco-rabanne-fame-intense', name: 'Fame Intense', price: 27, description: 'Fragancia premium de Paco Rabanne añadida desde el catálogo mayor y disponible en G&D Essences.', image: '', collection: 'paco-rabanne' },
   { id: 'paco-rabanne-fame-parfum', name: 'Fame Parfum', price: 27, description: 'Fragancia premium de Paco Rabanne añadida desde el catálogo mayor y disponible en G&D Essences.', image: '', collection: 'paco-rabanne' },
-  { id: 'paco-rabanne-olympea', name: 'Olympea', price: 28, description: 'Fragancia premium de Paco Rabanne añadida desde el catálogo mayor y disponible en G&D Essences.', image: '', collection: 'paco-rabanne' },
+  { id: 'paco-rabanne-olympea-catalogo-mayor', name: 'Olympea', price: 28, description: 'Fragancia premium de Paco Rabanne añadida desde el catálogo mayor y disponible en G&D Essences.', image: '', collection: 'paco-rabanne' },
   { id: 'paco-rabanne-phantom', name: 'Phantom', price: 27, description: 'Fragancia premium de Paco Rabanne añadida desde el catálogo mayor y disponible en G&D Essences.', image: '', collection: 'paco-rabanne' },
 
   // MOSCHINO
