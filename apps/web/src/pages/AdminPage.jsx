@@ -1,6 +1,5 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
-import { Download } from 'lucide-react';
 import { Header, Footer, ProductAdmin } from '@/components';
 import { Button, Input, Label } from '@/components/ui';
 import { isSupabaseEnabled, getCurrentUser, onAuthStateChange, signIn, signOut } from '@/lib/authService';
@@ -65,8 +64,6 @@ const AdminPage = () => {
   const [user, setUser] = React.useState(null);
   const [status, setStatus] = React.useState('loading');
   const [errorMessage, setErrorMessage] = React.useState('');
-  const [installPrompt, setInstallPrompt] = React.useState(null);
-  const [installMessage, setInstallMessage] = React.useState('');
 
   React.useEffect(() => {
     const adminBase = `${import.meta.env.BASE_URL}admin/`;
@@ -74,28 +71,6 @@ const AdminPage = () => {
       window.location.replace(adminBase);
     }
   }, []);
-
-  React.useEffect(() => {
-    const handleInstallAvailable = (event) => {
-      event.preventDefault();
-      setInstallPrompt(event);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleInstallAvailable);
-    return () => window.removeEventListener('beforeinstallprompt', handleInstallAvailable);
-  }, []);
-
-  const handleInstallAdmin = async () => {
-    if (!installPrompt) {
-      setInstallMessage('La instalación no está disponible ahora. Abre el menú del navegador y elige "Instalar aplicación".');
-      return;
-    }
-
-    installPrompt.prompt();
-    await installPrompt.userChoice;
-    setInstallPrompt(null);
-    setInstallMessage('');
-  };
 
   React.useEffect(() => {
     if (!isSupabaseEnabled()) {
@@ -164,20 +139,6 @@ const AdminPage = () => {
                   </div>
                 ) : null}
                 <LoginForm onSuccess={() => setErrorMessage('')} onError={setErrorMessage} />
-                <div className="text-center">
-                  <button
-                    type="button"
-                    onClick={handleInstallAdmin}
-                    className="inline-flex items-center gap-2 border border-border px-3 py-2 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
-                    title="Instalar G&D Admin"
-                  >
-                    <Download className="h-3.5 w-3.5" aria-hidden="true" />
-                    Instalar G&D Admin
-                  </button>
-                  {installMessage ? (
-                    <p className="mt-3 text-xs text-muted-foreground" aria-live="polite">{installMessage}</p>
-                  ) : null}
-                </div>
               </div>
             )}
 
