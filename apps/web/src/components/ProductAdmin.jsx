@@ -677,16 +677,22 @@ const ProductAdmin = () => {
                           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{product.collection || 'Personalizados'}</p>
                           <h4 className="mt-1 text-lg font-semibold text-foreground">{product.name}</h4>
                         </div>
-                        <Badge variant={product.status === 'published' ? 'secondary' : 'outline'}>
+                        <span
+                          className={`inline-flex items-center rounded-none border px-2 py-1 text-[10px] font-medium uppercase tracking-[0.18em] ${
+                            product.status === 'published'
+                              ? 'border-emerald-200 bg-emerald-100/70 text-emerald-700'
+                              : 'border-border bg-background text-muted-foreground'
+                          }`}
+                        >
                           {product.status === 'published' ? 'Publicado' : 'Borrador'}
-                        </Badge>
+                        </span>
                       </div>
                       <p className="mt-3 text-sm text-muted-foreground line-clamp-3">{product.description}</p>
                       <div className="mt-4 flex items-center justify-between gap-3">
                         <div>
                           <span className="text-lg font-semibold text-foreground">${Number(product.price || 0).toFixed(2)}</span>
                           {product.originalPrice ? (
-                            <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.18em] text-amber-500 line-through">
+                            <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.18em] text-amber-500">
                               Original ${Number(product.originalPrice).toFixed(2)}
                             </p>
                           ) : null}
