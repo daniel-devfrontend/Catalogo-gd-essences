@@ -380,6 +380,19 @@ const ProductAdmin = () => {
           <span>{deletingLabel || 'Procesando...'}</span>
         </div>
       ) : null}
+      {/* Modal overlay for long operations */}
+      {isDeleting ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" aria-hidden="true" />
+          <div className="relative z-10 w-full max-w-sm rounded-md border border-border bg-background p-6 text-center shadow-lg">
+            <div className="flex items-center justify-center mb-3">
+              <span className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-amber-600 border-t-transparent" aria-hidden="true" />
+            </div>
+            <p className="text-sm font-medium text-foreground mb-1">{deletingLabel || 'Procesando...'}</p>
+            <p className="text-xs text-muted-foreground">Esto puede tardar unos segundos. No cierres la página.</p>
+          </div>
+        </div>
+      ) : null}
       {toast ? (
         <div className="fixed bottom-6 right-6 z-50 w-80 rounded-none border border-border bg-background p-4 shadow-lg">
           <div className={`rounded-none p-3 text-sm ${toast.type === 'success' ? 'bg-emerald-50 text-emerald-900' : 'bg-rose-50 text-rose-900'}`}>
