@@ -69,6 +69,13 @@ const AdminPage = () => {
   const [installMessage, setInstallMessage] = React.useState('');
 
   React.useEffect(() => {
+    const adminBase = `${import.meta.env.BASE_URL}admin/`;
+    if (!window.location.pathname.endsWith('/admin/')) {
+      window.location.replace(adminBase);
+    }
+  }, []);
+
+  React.useEffect(() => {
     const handleInstallAvailable = (event) => {
       event.preventDefault();
       setInstallPrompt(event);
