@@ -4,6 +4,13 @@ import { Badge } from '@/components/ui';
 import { resolveProductImage } from '@/lib/productImageResolver';
 
 const PerfumeCard = ({ perfume, onClick }) => {
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onClick?.();
+    }
+  };
+
   const resolveImageSrc = (image) => {
     if (!image) return '';
     if (/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(image)) {
@@ -21,6 +28,10 @@ const PerfumeCard = ({ perfume, onClick }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
       onClick={onClick}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-label={`Ver detalles de ${perfume.name}`}
       className="group cursor-pointer h-full flex flex-col"
     >
       <div className="bg-card border border-border rounded-none overflow-hidden transition-all duration-300 hover:border-foreground/30 flex flex-col h-full">
