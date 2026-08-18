@@ -27,6 +27,8 @@ const ProductAdmin = () => {
   const [form, setForm] = React.useState(emptyForm);
   const [collectionForm, setCollectionForm] = React.useState({ title: '', description: '' });
   const [pendingFiles, setPendingFiles] = React.useState([]);
+  const [persistedImageUrls, setPersistedImageUrls] = React.useState([]);
+  const [selectedFileNames, setSelectedFileNames] = React.useState([]);
   const [message, setMessage] = React.useState('');
   const [toast, setToast] = React.useState(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -39,6 +41,7 @@ const ProductAdmin = () => {
   const [productSearch, setProductSearch] = React.useState('');
   const [productSort, setProductSort] = React.useState('collection-asc');
   const [showFilters, setShowFilters] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
   const filtersRef = React.useRef(null);
   const [editingProductId, setEditingProductId] = React.useState(null);
   const [editingCollectionId, setEditingCollectionId] = React.useState(null);
@@ -87,13 +90,17 @@ const ProductAdmin = () => {
 
   React.useEffect(() => {
     const loadData = async () => {
-      const [availableProducts, availableCollections] = await Promise.all([
-        getProducts(),
-        getCollections(),
-      ]);
+      try {
+        const [availableProducts, availableCollections] = await Promise.all([
+          getProducts(),
+          getCollections(),
+        ]);
 
-      setProducts(availableProducts);
-      setCollections(availableCollections);
+        setProducts(availableProducts);
+        setCollections(availableCollections);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadData();
@@ -127,11 +134,13 @@ const ProductAdmin = () => {
       const currentProduct = editingProductId
         ? products.find((product) => product.id === editingProductId)
         : null;
-      const existingImages = Array.isArray(currentProduct?.images)
-        ? [...currentProduct.images]
-        : currentProduct?.image
-          ? [currentProduct.image]
-          : [];
+      const existingImages = persistedImageUrls.length
+        ? [...persistedImageUrls]
+        : Array.isArray(currentProduct?.images)
+          ? [...currentProduct.images]
+          : currentProduct?.image
+            ? [currentProduct.image]
+            : [];
 
       let imageUrls = [];
 
@@ -139,10 +148,7 @@ const ProductAdmin = () => {
         imageUrls = await Promise.all(pendingFiles.map((file) => uploadProductImage(file)));
       }
 
-      const nextImages = imageUrls.length
-        ? [...new Set([...(existingImages || []), ...imageUrls])]
-        : existingImages;
-
+      const nextImages = [...new Set([...(existingImages || []), ...imageUrls])];
       const realImages = (nextImages || []).filter((image) => typeof image === 'string' && image.trim() && !image.includes('placeholder.svg'));
 
       const newProduct = {
@@ -164,8 +170,11 @@ const ProductAdmin = () => {
       setProducts(availableProducts);
       setForm(emptyForm);
       setPendingFiles([]);
+      setPersistedImageUrls([]);
+      setSelectedFileNames([]);
       setSelectedProductId(newProduct.id);
       setEditingProductId(null);
+      setActiveTab('products');
 
       const successMessage = editingProductId ? 'Cambio guardado exitosamente.' : 'Producto registrado exitosamente.';
       setToast({
@@ -190,10 +199,18 @@ const ProductAdmin = () => {
 
   const handleFiles = (event) => {
     const files = Array.from(event.target.files || []);
+    if (!files.length) return;
     setPendingFiles((previous) => [...previous, ...files]);
+    setSelectedFileNames((previous) => [...previous, ...files.map((file) => file.name)]);
   };
 
   const startEditingProduct = (product) => {
+    const existingImages = Array.isArray(product.images)
+      ? product.images.filter(Boolean)
+      : product.image
+        ? [product.image]
+        : [];
+
     setForm({
       name: product.name || '',
       price: product.price?.toString() || '',
@@ -205,8 +222,12 @@ const ProductAdmin = () => {
       status: product.status || 'published',
       deletedAt: product.deleted_at || product.deletedAt || null,
     });
+    setPersistedImageUrls(existingImages);
+    setSelectedFileNames([]);
+    setPendingFiles([]);
     setEditingProductId(product.id);
     setSelectedProductId(product.id);
+    setActiveTab('add-product');
     setMessage('');
 
     setTimeout(() => {
@@ -219,6 +240,8 @@ const ProductAdmin = () => {
     setEditingProductId(null);
     setForm(emptyForm);
     setPendingFiles([]);
+    setPersistedImageUrls([]);
+    setSelectedFileNames([]);
   };
 
   const handleDeleteProduct = async (product) => {
@@ -450,12 +473,11 @@ const ProductAdmin = () => {
 
       {activeTab === 'add-product' ? (
         <div className="mb-8 rounded-none border border-border bg-card p-6">
-          <div className="mb-6 flex items-center justify-between gap-3">
+          <div className="mb-6">
             <div>
               <h3 className="text-xl font-medium text-foreground">Añadir producto</h3>
               <p className="mt-1 text-sm text-muted-foreground">Completa los datos y guarda el perfume en el catálogo.</p>
             </div>
-            <Button type="button" variant="outline" className="rounded-none" onClick={() => setActiveTab('products')}>Volver al catálogo</Button>
           </div>
 
           <form id="product-form-top" onSubmit={handleCreate} className="grid gap-4 md:grid-cols-2">
@@ -502,6 +524,27 @@ const ProductAdmin = () => {
             <div className="space-y-2">
               <Label htmlFor="product-additional-images">Fotos adicionales</Label>
               <Input id="product-additional-images" type="file" accept="image/*" multiple onChange={handleFiles} />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label>Fotos guardadas</Label>
+              <div className="flex flex-wrap gap-2">
+                {persistedImageUrls.length ? (
+                  persistedImageUrls.map((image, index) => (
+                    <img key={`${image}-${index}`} src={image} alt={`Imagen guardada ${index + 1}`} className="h-16 w-16 object-cover border border-border bg-background" />
+                  ))
+                ) : (
+                  <p className="text-xs text-muted-foreground">No hay fotos guardadas todavía.</p>
+                )}
+              </div>
+              {selectedFileNames.length ? (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {selectedFileNames.map((fileName, index) => (
+                    <span key={`${fileName}-${index}`} className="inline-flex items-center rounded-none border border-border bg-background px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                      {fileName}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
             </div>
             <div className="md:col-span-2 flex flex-wrap gap-3">
               <Button type="submit" className="rounded-none" disabled={isSubmitting}>
@@ -646,80 +689,118 @@ const ProductAdmin = () => {
                 ))}
               </div>
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {visibleProducts.map((product) => {
-                  const resolvedImage = resolveProductImage(product);
-                  return (
-                    <div
-                      key={product.id}
-                      className="cursor-pointer border border-border bg-card p-3 transition hover:border-foreground/30"
-                      onClick={() => setSelectedPerfume(product)}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault();
-                          setSelectedPerfume(product);
-                        }
-                      }}
-                      role="button"
-                      tabIndex={0}
-                    >
-                      <div className="mb-3 overflow-hidden border border-border bg-background">
-                        {resolvedImage ? (
-                          <img src={resolvedImage} alt={product.name} className="h-52 w-full object-cover" />
-                        ) : (
-                          <div className="flex h-52 items-center justify-center border border-dashed border-border bg-muted text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                            Sin imagen
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{product.collection || 'Personalizados'}</p>
-                          <h4 className="mt-1 text-lg font-semibold text-foreground">{product.name}</h4>
+              {isLoading ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                    <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-foreground/50" />
+                    Cargando productos
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4 xl:grid-cols-3">
+                    {Array.from({ length: 6 }).map((_, index) => (
+                      <div key={index} className="animate-pulse border border-border bg-card p-2 sm:p-3">
+                        <div className="mb-2 h-24 bg-muted/80 sm:h-32 md:h-40 xl:h-52" />
+                        <div className="mb-2 flex items-center justify-between gap-2">
+                          <div className="h-2.5 w-10 bg-muted/80 sm:h-3 sm:w-16" />
+                          <div className="h-3.5 w-12 bg-muted/80 sm:h-4 sm:w-16" />
                         </div>
-                        <span
-                          className={`inline-flex items-center rounded-none border px-2 py-1 text-[10px] font-medium uppercase tracking-[0.18em] ${
-                            product.status === 'published'
-                              ? 'border-emerald-200 bg-emerald-100/70 text-emerald-700'
-                              : 'border-border bg-background text-muted-foreground'
-                          }`}
-                        >
-                          {product.status === 'published' ? 'Publicado' : 'Borrador'}
-                        </span>
+                        <div className="mb-2 h-2.5 w-full bg-muted/80 sm:h-3" />
+                        <div className="mb-2 h-2.5 w-2/3 bg-muted/80 sm:h-3" />
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="h-4 w-10 bg-muted/80 sm:h-5 sm:w-16" />
+                          <div className="h-2.5 w-8 bg-muted/80 sm:h-3 sm:w-12" />
+                        </div>
+                        <div className="mt-3 flex gap-1 sm:gap-2">
+                          <div className="h-7 w-12 bg-muted/80 sm:h-9 sm:w-16" />
+                          <div className="h-7 w-12 bg-muted/80 sm:h-9 sm:w-16" />
+                        </div>
                       </div>
-                      <p className="mt-3 text-sm text-muted-foreground line-clamp-3">{product.description}</p>
-                      <div className="mt-4 flex items-center justify-between gap-3">
-                        <div>
-                          <span className="text-lg font-semibold text-foreground">${Number(product.price || 0).toFixed(2)}</span>
-                          {product.originalPrice ? (
-                            <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.18em] text-amber-500">
-                              Original ${Number(product.originalPrice).toFixed(2)}
-                            </p>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2 sm:gap-3 md:gap-4 xl:grid-cols-3">
+                  {visibleProducts.map((product) => {
+                    const resolvedImage = resolveProductImage(product);
+                    const extraImageCount = Math.max((product.images?.length || 1) - 1, 0);
+                    return (
+                      <div
+                        key={product.id}
+                        className="cursor-pointer border border-border bg-card p-2 transition hover:border-foreground/30 sm:p-3"
+                        onClick={() => setSelectedPerfume(product)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            setSelectedPerfume(product);
+                          }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                      >
+                        <div className="relative mb-2 overflow-hidden border border-border bg-background sm:mb-3">
+                          <div className="absolute left-2 top-2 z-10 inline-flex items-center rounded-none border border-white/60 bg-background/80 px-1.5 py-0.5 text-[6px] font-medium uppercase tracking-[0.18em] text-foreground backdrop-blur-sm sm:text-[7px]">
+                            {product.collection || 'Personalizados'}
+                          </div>
+                          {resolvedImage ? (
+                            <img src={resolvedImage} alt={product.name} className="h-24 w-full object-cover sm:h-32 md:h-40 xl:h-52" />
+                          ) : (
+                            <div className="flex h-24 items-center justify-center border border-dashed border-border bg-muted text-[8px] uppercase tracking-[0.2em] text-muted-foreground sm:h-32 md:h-40 xl:h-52 sm:text-[10px]">
+                              Sin imagen
+                            </div>
+                          )}
+                          {extraImageCount > 0 ? (
+                            <span className="absolute right-2 top-2 inline-flex items-center justify-center rounded-full border border-white/70 bg-black/35 px-1.5 py-0.5 text-[7px] font-medium text-white backdrop-blur-[1px] sm:text-[8px]">
+                              +{extraImageCount}
+                            </span>
                           ) : null}
                         </div>
-                        <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{product.images?.length || 1} fotos</span>
+                        <div className="flex items-start justify-between gap-2 sm:gap-3">
+                          <div>
+                            <h4 className="mt-1 text-xs font-semibold text-foreground sm:text-sm md:text-base">{product.name}</h4>
+                          </div>
+                          <span
+                            className={`inline-flex items-center rounded-none border px-0.5 py-0.5 text-[5px] font-medium uppercase tracking-[0.08em] sm:px-1 sm:py-0.5 sm:text-[7px] sm:tracking-[0.12em] ${
+                              product.status === 'published'
+                                ? 'border-emerald-200 bg-emerald-100/70 text-emerald-700'
+                                : 'border-border bg-background text-muted-foreground'
+                            }`}
+                            style={{ lineHeight: 1.4 }}
+                          >
+                            {product.status === 'published' ? 'Publicado' : 'Borrador'}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-[9px] text-muted-foreground line-clamp-3 sm:mt-3 sm:text-[11px]">{product.description}</p>
+                        <div className="mt-3 flex items-center justify-between gap-2 sm:mt-4 sm:gap-3">
+                          <div>
+                            <span className="text-xs font-semibold text-foreground sm:text-sm md:text-base">${Number(product.price || 0).toFixed(2)}</span>
+                            {product.originalPrice ? (
+                              <p className="mt-1 text-[7px] text-amber-600 sm:text-[8px]" style={{ textDecoration: 'none' }}>
+                                Original ${Number(product.originalPrice).toFixed(2)}
+                              </p>
+                            ) : null}
+                          </div>
+                        </div>
+                        <div className="mt-3 grid grid-cols-2 gap-1 sm:mt-4 sm:flex sm:flex-wrap sm:gap-2">
+                          <Button type="button" variant="outline" className="rounded-none w-full px-1 py-1 text-[7px] sm:w-auto sm:px-3 sm:py-1.5 sm:text-[10px]" onClick={(event) => { event.stopPropagation(); startEditingProduct(product); }}>Editar</Button>
+                          {product.status === 'draft' ? (
+                            <Button type="button" className="rounded-none w-full bg-black px-1 py-1 text-[7px] text-white hover:bg-black/90 sm:w-auto sm:px-3 sm:py-1.5 sm:text-[10px]" onClick={(event) => { event.stopPropagation(); handleRestoreProduct(product); }} disabled={isDeleting}>
+                              Restaurar
+                            </Button>
+                          ) : (
+                            <Button type="button" className="rounded-none w-full bg-black px-1 py-1 text-[7px] text-white hover:bg-black/90 sm:w-auto sm:px-3 sm:py-1.5 sm:text-[10px]" onClick={(event) => { event.stopPropagation(); handleDeleteProduct(product); }} disabled={isDeleting}>
+                              Borrar
+                            </Button>
+                          )}
+                          {product.status === 'draft' ? (
+                            <Button type="button" className="rounded-none w-full bg-black px-1 py-1 text-[7px] text-white hover:bg-black/90 sm:w-auto sm:px-3 sm:py-1.5 sm:text-[10px]" onClick={(event) => { event.stopPropagation(); handleDeleteProductPermanently(product); }} disabled={isDeleting}>
+                              Borrar
+                            </Button>
+                          ) : null}
+                        </div>
                       </div>
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        <Button type="button" variant="outline" className="rounded-none" onClick={(event) => { event.stopPropagation(); startEditingProduct(product); }}>Editar</Button>
-                        {product.status === 'draft' ? (
-                          <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={(event) => { event.stopPropagation(); handleRestoreProduct(product); }} disabled={isDeleting}>
-                            Restaurar
-                          </Button>
-                        ) : (
-                          <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={(event) => { event.stopPropagation(); handleDeleteProduct(product); }} disabled={isDeleting}>
-                            Borrar
-                          </Button>
-                        )}
-                        {product.status === 'draft' ? (
-                          <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={(event) => { event.stopPropagation(); handleDeleteProductPermanently(product); }} disabled={isDeleting}>
-                            Borrar
-                          </Button>
-                        ) : null}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </>
           ) : null}
 
