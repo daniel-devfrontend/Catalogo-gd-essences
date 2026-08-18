@@ -225,24 +225,28 @@ export const createOrUpdateProduct = async (product) => {
   return data;
 };
 
-const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
-  if (typeof file === 'string') {
-    resolve(file);
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onload = () => resolve(reader.result);
-  reader.onerror = () => reject(new Error('No se pudo leer la imagen.'));
-  reader.readAsDataURL(file);
-});
-
 export const uploadProductImage = async (file) => {
   if (!isEnabled || !supabase) {
     throw new Error('Supabase no está configurado.');
   }
 
-  return await readFileAsDataUrl(file);
+  if (typeof file === 'string') return file;
+
+  const extension = file.name?.split('.').pop()?.toLowerCase() || 'jpg';
+  const filePath = `products/${crypto.randomUUID()}.${extension}`;
+  const { error } = await supabase.storage
+    .from('product-images')
+    .upload(filePath, file, {
+      cacheControl: '31536000',
+      contentType: file.type || 'image/jpeg',
+      upsert: false,
+    });
+
+  if (error) throw error;
+
+  const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
+  if (!data?.publicUrl) throw new Error('No se pudo obtener la URL pública de la imagen.');
+  return data.publicUrl;
 };
 
 export const addImagesToProduct = async (productId, imageUrls) => {
