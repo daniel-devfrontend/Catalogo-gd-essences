@@ -524,7 +524,10 @@ const ProductAdmin = () => {
                     <div key={product.id} className="border border-border bg-card p-3 rounded-none">
                       <div className="flex items-start gap-4">
                         <img
-                          src={product.image || `${import.meta.env.BASE_URL}perfumes/placeholder.svg`}
+                          src={
+                            (Array.isArray(product.images) && product.images.length ? product.images[0] : product.image)
+                              || `${import.meta.env.BASE_URL}perfumes/placeholder.svg`
+                          }
                           alt={product.name}
                           className="h-20 w-20 object-cover rounded-none"
                         />

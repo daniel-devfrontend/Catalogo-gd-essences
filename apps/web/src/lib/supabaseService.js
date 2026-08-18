@@ -32,6 +32,14 @@ const writeCache = (key, value) => {
   }
 };
 
+const clearCache = (key) => {
+  try {
+    window.localStorage.removeItem(key);
+  } catch (error) {
+    // Ignore cache clear failures silently.
+  }
+};
+
 const isExpiredDeletedProduct = (product) => {
   if (!product?.deleted_at) return false;
   const deletedAt = new Date(product.deleted_at);
@@ -96,6 +104,7 @@ export const createCollection = async (collection) => {
 
   const { error } = await supabase.from('collections').upsert(collection);
   if (error) throw error;
+  clearCache(COLLECTION_CACHE_KEY);
   return getCollections();
 };
 
@@ -174,6 +183,7 @@ export const createOrUpdateProduct = async (product) => {
 
   const { data, error } = await supabase.from('products').upsert(payload, { onConflict: 'id' }).select('*');
   if (error) throw error;
+  clearCache(PRODUCT_CACHE_KEY);
   return data;
 };
 
@@ -209,6 +219,7 @@ export const addImagesToProduct = async (productId, imageUrls) => {
   // Only update images column to avoid sending unknown columns
   const { data, error } = await supabase.from('products').upsert({ id: productId, images }, { onConflict: 'id' }).select('*');
   if (error) throw error;
+  clearCache(PRODUCT_CACHE_KEY);
   return data;
 };
 
@@ -220,6 +231,7 @@ export const deleteProduct = async (productId) => {
   const deletedAt = new Date().toISOString();
   const { data, error } = await supabase.from('products').upsert({ id: productId, status: 'draft', deleted_at: deletedAt }, { onConflict: 'id' }).select('*');
   if (error) throw error;
+  clearCache(PRODUCT_CACHE_KEY);
   return data;
 };
 
@@ -230,6 +242,7 @@ export const deleteProductPermanently = async (productId) => {
 
   const { error } = await supabase.from('products').delete().eq('id', productId);
   if (error) throw error;
+  clearCache(PRODUCT_CACHE_KEY);
   return getProducts();
 };
 

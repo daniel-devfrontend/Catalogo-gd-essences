@@ -3,8 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Ba
 import { Link } from 'react-router-dom';
 
 const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
-  if (!perfume) return null;
-
   const safePerfume = perfume || {};
 
   const resolveImageSrc = (image) => {
@@ -41,6 +39,35 @@ const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
     return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&controls=1&iv_load_policy=3&disablekb=1&playsinline=1`;
   };
   const getYoutubeThumbnailUrl = (id) => (id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '');
+
+  const getProductPlaceholder = (name) => {
+    const initials = (name || 'G&D')
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((word) => word.charAt(0).toUpperCase())
+      .join('') || 'G&D';
+
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500">
+        <defs>
+          <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0%" stop-color="#f4efe8"/>
+            <stop offset="100%" stop-color="#e8dcc4"/>
+          </linearGradient>
+        </defs>
+        <rect width="1200" height="1500" fill="url(#bg)"/>
+        <rect x="80" y="80" width="1040" height="1340" rx="34" fill="#ffffff" stroke="#d6c3a0" stroke-width="8"/>
+        <circle cx="600" cy="560" r="220" fill="#efe2cf"/>
+        <path d="M600 380c-120 110-170 190-170 280 0 120 76 230 170 230s170-110 170-230c0-90-50-170-170-280Z" fill="#2f241d"/>
+        <path d="M470 820h260" stroke="#8b6b3f" stroke-width="14" stroke-linecap="round"/>
+        <text x="600" y="1030" text-anchor="middle" font-size="160" font-family="Georgia, serif" fill="#2f241d" letter-spacing="12">${initials}</text>
+        <text x="600" y="1200" text-anchor="middle" font-size="62" font-family="Georgia, serif" fill="#2f241d">${(name || 'G&D Essences').slice(0, 16)}</text>
+      </svg>
+    `;
+
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+  };
 
   const videoId = getYoutubeVideoId(safePerfume.video_url || safePerfume.videoUrl || '');
   const videoEmbedUrl = getYoutubeEmbedUrl(videoId);
@@ -93,7 +120,7 @@ const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
   const galleryItems = React.useMemo(() => {
     const images = Array.isArray(safePerfume.images) && safePerfume.images.length
       ? safePerfume.images
-      : [safePerfume.image];
+      : [safePerfume.image || safePerfume.images?.[0]];
 
     const items = images.filter(Boolean).map((image) => ({
       type: 'image',
@@ -112,6 +139,11 @@ const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
   }, [safePerfume, videoEmbedUrl, videoThumbnailUrl]);
 
   const activeItem = galleryItems[activeImage] || galleryItems[0];
+
+  const handleGalleryImageError = (event) => {
+    event.currentTarget.onerror = null;
+    event.currentTarget.src = getProductPlaceholder(perfume?.name || 'G&D Essences');
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -143,9 +175,7 @@ const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
               <img
                 src={activeItem.src}
                 alt={perfume.name}
-                onError={(event) => {
-                  event.currentTarget.src = `${import.meta.env.BASE_URL}perfumes/placeholder.svg`;
-                }}
+                onError={handleGalleryImageError}
                 className="w-full h-full object-cover"
               />
             )}
