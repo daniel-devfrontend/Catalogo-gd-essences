@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 
 const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
   const safePerfume = perfume || {};
+  const productName = safePerfume.name || 'G&D Essences';
+  const productPrice = Number(safePerfume.price ?? 0);
 
   const resolveImageSrc = (image) => {
     if (!image) return '';
@@ -145,6 +147,10 @@ const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
     event.currentTarget.src = getProductPlaceholder(perfume?.name || 'G&D Essences');
   };
 
+  if (!isOpen || !perfume || !safePerfume.id) {
+    return null;
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
@@ -164,7 +170,7 @@ const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
               >
                 <iframe
                   src={activeItem.embedUrl}
-                  title={`${perfume.name} video`}
+                  title={`${productName} video`}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                   className="h-full w-full"
@@ -174,7 +180,7 @@ const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
             ) : (
               <img
                 src={activeItem.src}
-                alt={perfume.name}
+                alt={productName}
                 onError={handleGalleryImageError}
                 className="w-full h-full object-cover"
               />
@@ -208,20 +214,20 @@ const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
                 {perfume.collection}
               </Badge>
               <DialogTitle id="perfume-dialog-title" className="text-3xl md:text-4xl font-medium mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
-                {perfume.name}
+                {productName}
               </DialogTitle>
               <DialogDescription id="perfume-dialog-description" className="text-2xl text-foreground mt-4" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                ${perfume.price.toFixed(2)}
+                ${Number.isFinite(productPrice) ? productPrice.toFixed(2) : '0.00'}
               </DialogDescription>
             </DialogHeader>
 
             <div className="mb-10">
               <p className="text-base leading-relaxed text-muted-foreground">
-                {perfume.description}
+                {safePerfume.description}
               </p>
-              {perfume.originalPrice ? (
+              {safePerfume.originalPrice ? (
                 <p className="mt-4 text-sm font-semibold text-amber-300">
-                  También disponible en su versión original por ${perfume.originalPrice.toFixed(2)}
+                  También disponible en su versión original por ${Number(safePerfume.originalPrice).toFixed(2)}
                 </p>
               ) : null}
             </div>
