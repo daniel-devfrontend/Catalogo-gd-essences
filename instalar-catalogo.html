@@ -4,14 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#000000" />
-    <link rel="manifest" href="./catalogo-manifest.webmanifest?v=1" />
-    <link rel="icon" type="image/png" href="./Logos/LogoApp2-512.png?v=1" />
+    <link rel="manifest" href="./catalogo-manifest.webmanifest?v=2" />
+    <link rel="icon" type="image/png" href="./Logos/LogoApp2-512.png?v=2" />
     <title>G&D Essences Catalogo</title>
     <style>
       :root { color-scheme: dark; font-family: Georgia, serif; }
       body { min-height: 100vh; margin: 0; display: grid; place-items: center; background: #050505; color: #fff; text-align: center; }
       main { width: min(90vw, 360px); }
-      img { width: 132px; height: 132px; object-fit: cover; margin-bottom: 24px; }
+      img { width: 132px; height: 132px; object-fit: cover; border-radius: 24px; margin-bottom: 24px; }
       h1 { margin: 0 0 10px; font-size: 24px; font-weight: 500; }
       p { margin: 0 0 24px; color: #b7b7b7; font: 14px Arial, sans-serif; line-height: 1.5; }
       button, a { display: inline-block; border: 1px solid #777; background: #fff; color: #000; padding: 12px 18px; font: 600 12px Arial, sans-serif; letter-spacing: .12em; text-decoration: none; text-transform: uppercase; cursor: pointer; }
@@ -21,7 +21,7 @@
   </head>
   <body>
     <main>
-      <img src="./Logos/LogoApp2-512.png?v=1" alt="G&D Essences" />
+      <img src="./Logos/LogoApp2-512.png?v=2" alt="G&D Essences" />
       <h1>G&D Essences Catalogo</h1>
       <p>Instala el acceso directo para abrir el catálogo desde tu teléfono.</p>
       <button id="install-button" type="button">Instalar catálogo</button>
@@ -29,6 +29,7 @@
       <p id="message" aria-live="polite"></p>
     </main>
     <script>
+      if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
       let deferredPrompt;
       const installButton = document.getElementById('install-button');
       const openCatalog = document.getElementById('open-catalog');
