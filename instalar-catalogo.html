@@ -29,7 +29,7 @@
       <p id="message" aria-live="polite"></p>
     </main>
     <script>
-      if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
+      if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js?v=2').catch(() => {});
       let deferredPrompt;
       const installButton = document.getElementById('install-button');
       const openCatalog = document.getElementById('open-catalog');
