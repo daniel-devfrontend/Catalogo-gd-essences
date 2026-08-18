@@ -1,12 +1,7 @@
-const CACHE_NAME = 'gd-essences-catalog-v4';
-const APP_ROOT = '/Catalogo-gd-essences/';
+const CACHE_NAME = 'gd-essences-catalog-v5';
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.add(APP_ROOT))
-      .then(() => self.skipWaiting())
-  );
+self.addEventListener('install', () => {
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
@@ -27,6 +22,6 @@ self.addEventListener('fetch', (event) => {
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         return response;
       })
-      .catch(() => caches.match(event.request).then((cached) => cached || caches.match(APP_ROOT)))
+      .catch(() => caches.match(event.request))
   );
 });

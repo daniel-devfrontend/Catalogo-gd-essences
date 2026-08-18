@@ -8,5 +8,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 );
 
 if ('serviceWorker' in navigator) {
-	navigator.serviceWorker.register(`${import.meta.env.BASE_URL}service-worker.js?v=4`).catch(() => {});
+	navigator.serviceWorker.register(`${import.meta.env.BASE_URL}service-worker.js?v=5`).catch(() => {});
 }
