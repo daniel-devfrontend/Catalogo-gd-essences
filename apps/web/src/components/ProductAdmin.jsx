@@ -525,14 +525,17 @@ const ProductAdmin = () => {
                   {visibleProducts.map((product) => (
                     <div key={product.id} className="border border-border bg-card p-3 rounded-none">
                       <div className="flex items-start gap-4">
-                        <img
-                          src={
-                            (Array.isArray(product.images) && product.images.length ? product.images[0] : product.image)
-                              || `${import.meta.env.BASE_URL}perfumes/placeholder.svg`
-                          }
-                          alt={product.name}
-                          className="h-20 w-20 object-cover rounded-none"
-                        />
+                        {((Array.isArray(product.images) && product.images.length ? product.images[0] : product.image) && !String((Array.isArray(product.images) && product.images.length ? product.images[0] : product.image)).includes('placeholder.svg')) ? (
+                          <img
+                            src={(Array.isArray(product.images) && product.images.length ? product.images[0] : product.image)}
+                            alt={product.name}
+                            className="h-20 w-20 object-cover rounded-none"
+                          />
+                        ) : (
+                          <div className="h-20 w-20 rounded-none border border-dashed border-border bg-muted flex items-center justify-center text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                            Sin
+                          </div>
+                        )}
                         <div className="flex-1">
                           <div className="flex flex-wrap items-center gap-2">
                             <h4 className="text-lg font-semibold text-foreground">{product.name}</h4>

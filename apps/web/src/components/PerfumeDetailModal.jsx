@@ -50,35 +50,6 @@ const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
   };
   const getYoutubeThumbnailUrl = (id) => (id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '');
 
-  const getProductPlaceholder = (name) => {
-    const initials = (name || 'G&D')
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((word) => word.charAt(0).toUpperCase())
-      .join('') || 'G&D';
-
-    const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500">
-        <defs>
-          <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0%" stop-color="#f4efe8"/>
-            <stop offset="100%" stop-color="#e8dcc4"/>
-          </linearGradient>
-        </defs>
-        <rect width="1200" height="1500" fill="url(#bg)"/>
-        <rect x="80" y="80" width="1040" height="1340" rx="34" fill="#ffffff" stroke="#d6c3a0" stroke-width="8"/>
-        <circle cx="600" cy="560" r="220" fill="#efe2cf"/>
-        <path d="M600 380c-120 110-170 190-170 280 0 120 76 230 170 230s170-110 170-230c0-90-50-170-170-280Z" fill="#2f241d"/>
-        <path d="M470 820h260" stroke="#8b6b3f" stroke-width="14" stroke-linecap="round"/>
-        <text x="600" y="1030" text-anchor="middle" font-size="160" font-family="Georgia, serif" fill="#2f241d" letter-spacing="12">${initials}</text>
-        <text x="600" y="1200" text-anchor="middle" font-size="62" font-family="Georgia, serif" fill="#2f241d">${(name || 'G&D Essences').slice(0, 16)}</text>
-      </svg>
-    `;
-
-    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
-  };
-
   const videoId = getYoutubeVideoId(safePerfume.video_url || safePerfume.videoUrl || '');
   const videoEmbedUrl = getYoutubeEmbedUrl(videoId);
   const videoThumbnailUrl = getYoutubeThumbnailUrl(videoId);
@@ -143,20 +114,15 @@ const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
     if (videoEmbedUrl) {
       items.push({
         type: 'video',
-        src: videoThumbnailUrl || `${import.meta.env.BASE_URL}perfumes/placeholder.svg`,
+        src: videoThumbnailUrl || '',
         embedUrl: videoEmbedUrl,
       });
     }
 
-    return items.length ? items : [{ type: 'image', src: `${import.meta.env.BASE_URL}perfumes/placeholder.svg` }];
+    return items;
   }, [safePerfume, videoEmbedUrl, videoThumbnailUrl]);
 
   const activeItem = galleryItems[activeImage] || galleryItems[0];
-
-  const handleGalleryImageError = (event) => {
-    event.currentTarget.onerror = null;
-    event.currentTarget.src = getProductPlaceholder(perfume?.name || 'G&D Essences');
-  };
 
   if (!isOpen || !perfume || !safePerfume.id) {
     return null;
@@ -171,7 +137,7 @@ const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
       >
         <div className="grid md:grid-cols-2 h-full">
           <div className="aspect-square md:aspect-auto md:h-full bg-muted relative">
-            {activeItem.type === 'video' ? (
+            {activeItem && activeItem.type === 'video' && activeItem.embedUrl ? (
               <div
                 className="relative h-full w-full bg-black"
                 onTouchStart={handleSwipeStart}
@@ -188,13 +154,16 @@ const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
                   style={{ border: 'none' }}
                 />
               </div>
-            ) : (
+            ) : activeItem && activeItem.src ? (
               <img
                 src={activeItem.src}
                 alt={productName}
-                onError={handleGalleryImageError}
                 className="w-full h-full object-cover"
               />
+            ) : (
+              <div className="h-full w-full bg-muted flex items-center justify-center text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                Sin imagen
+              </div>
             )}
 
             {galleryItems.length > 1 ? (

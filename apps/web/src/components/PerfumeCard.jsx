@@ -19,44 +19,14 @@ const PerfumeCard = ({ perfume, onClick }) => {
     return `${import.meta.env.BASE_URL}${image.replace(/^\/+/, '')}`;
   };
 
-  const getProductPlaceholder = (name) => {
-    const initials = (name || 'G&D')
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((word) => word.charAt(0).toUpperCase())
-      .join('') || 'G&D';
-
-    const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500">
-        <defs>
-          <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0%" stop-color="#f4efe8"/>
-            <stop offset="100%" stop-color="#e8dcc4"/>
-          </linearGradient>
-        </defs>
-        <rect width="1200" height="1500" fill="url(#bg)"/>
-        <rect x="80" y="80" width="1040" height="1340" rx="34" fill="#ffffff" stroke="#d6c3a0" stroke-width="8"/>
-        <circle cx="600" cy="560" r="220" fill="#efe2cf"/>
-        <path d="M600 380c-120 110-170 190-170 280 0 120 76 230 170 230s170-110 170-230c0-90-50-170-170-280Z" fill="#2f241d"/>
-        <path d="M470 820h260" stroke="#8b6b3f" stroke-width="14" stroke-linecap="round"/>
-        <text x="600" y="1030" text-anchor="middle" font-size="160" font-family="Georgia, serif" fill="#2f241d" letter-spacing="12">${initials}</text>
-        <text x="600" y="1200" text-anchor="middle" font-size="62" font-family="Georgia, serif" fill="#2f241d">${(name || 'G&D Essences').slice(0, 16)}</text>
-      </svg>
-    `;
-
-    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
-  };
-
   const primaryImage = Array.isArray(perfume.images)
     ? perfume.images.find((image) => isRealProductImage(image))
     : null;
-  const imageSrc = resolveImageSrc(primaryImage || (isRealProductImage(perfume.image) ? perfume.image : ''));
-
-  const handleImageError = (event) => {
-    event.currentTarget.onerror = null;
-    event.currentTarget.src = getProductPlaceholder(perfume.name);
-  };
+  const imageSrc = primaryImage
+    ? resolveImageSrc(primaryImage)
+    : isRealProductImage(perfume.image)
+      ? resolveImageSrc(perfume.image)
+      : '';
 
   return (
     <motion.div
@@ -75,7 +45,6 @@ const PerfumeCard = ({ perfume, onClick }) => {
               loading="lazy"
               decoding="async"
               sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
-              onError={handleImageError}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
             />
           ) : (
