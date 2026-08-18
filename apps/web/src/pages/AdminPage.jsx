@@ -131,21 +131,6 @@ const AdminPage = () => {
         <Header />
         <main className="flex-1 py-20">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="mb-6 flex justify-end">
-              <button
-                type="button"
-                onClick={handleInstallAdmin}
-                className="inline-flex items-center gap-2 border border-border px-3 py-2 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
-                title="Instalar G&D Admin"
-              >
-                <Download className="h-3.5 w-3.5" aria-hidden="true" />
-                Instalar G&D Admin
-              </button>
-            </div>
-            {installMessage ? (
-              <p className="mb-6 text-right text-xs text-muted-foreground" aria-live="polite">{installMessage}</p>
-            ) : null}
-
             {status === 'loading' && (
               <div className="rounded-none border border-border bg-card p-8 text-center text-foreground">
                 Cargando panel de administración...
@@ -172,6 +157,20 @@ const AdminPage = () => {
                   </div>
                 ) : null}
                 <LoginForm onSuccess={() => setErrorMessage('')} onError={setErrorMessage} />
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={handleInstallAdmin}
+                    className="inline-flex items-center gap-2 border border-border px-3 py-2 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
+                    title="Instalar G&D Admin"
+                  >
+                    <Download className="h-3.5 w-3.5" aria-hidden="true" />
+                    Instalar G&D Admin
+                  </button>
+                  {installMessage ? (
+                    <p className="mt-3 text-xs text-muted-foreground" aria-live="polite">{installMessage}</p>
+                  ) : null}
+                </div>
               </div>
             )}
 
