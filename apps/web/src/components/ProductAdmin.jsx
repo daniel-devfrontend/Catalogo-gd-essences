@@ -571,11 +571,6 @@ const ProductAdmin = () => {
 
               {activeTab === 'products' ? (
                 <div className="flex flex-wrap gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Ver:</span>
-                    <Button variant={viewMode === 'grid' ? 'default' : 'outline'} className="rounded-none" onClick={() => setViewMode('grid')}>Cuadros</Button>
-                    <Button variant={viewMode === 'list' ? 'default' : 'outline'} className="rounded-none" onClick={() => setViewMode('list')}>Lista</Button>
-                  </div>
                   <div className="relative" ref={filtersRef}>
                     <Button variant="outline" className="rounded-none flex items-center gap-2" onClick={() => setShowFilters((s) => !s)} aria-expanded={showFilters} aria-label="Abrir filtros">
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -649,104 +644,55 @@ const ProductAdmin = () => {
                 ))}
               </div>
 
-              {viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  {visibleProducts.map((product) => {
-                    const resolvedImage = resolveProductImage(product);
-                    return (
-                      <div key={product.id} className="border border-border bg-card p-3">
-                        <div className="mb-3 overflow-hidden border border-border bg-background">
-                          {resolvedImage ? (
-                            <img src={resolvedImage} alt={product.name} className="h-52 w-full object-cover" />
-                          ) : (
-                            <div className="flex h-52 items-center justify-center border border-dashed border-border bg-muted text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                              Sin imagen
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{product.collection || 'Personalizados'}</p>
-                            <h4 className="mt-1 text-lg font-semibold text-foreground">{product.name}</h4>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {visibleProducts.map((product) => {
+                  const resolvedImage = resolveProductImage(product);
+                  return (
+                    <div key={product.id} className="border border-border bg-card p-3">
+                      <div className="mb-3 overflow-hidden border border-border bg-background">
+                        {resolvedImage ? (
+                          <img src={resolvedImage} alt={product.name} className="h-52 w-full object-cover" />
+                        ) : (
+                          <div className="flex h-52 items-center justify-center border border-dashed border-border bg-muted text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                            Sin imagen
                           </div>
-                          <Badge variant={product.status === 'published' ? 'secondary' : 'outline'}>
-                            {product.status === 'published' ? 'Publicado' : 'Borrador'}
-                          </Badge>
-                        </div>
-                        <p className="mt-3 text-sm text-muted-foreground line-clamp-3">{product.description}</p>
-                        <div className="mt-4 flex items-center justify-between gap-3">
-                          <span className="text-lg font-semibold text-foreground">${Number(product.price || 0).toFixed(2)}</span>
-                          <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{product.images?.length || 1} fotos</span>
-                        </div>
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          <Button type="button" variant="outline" className="rounded-none" onClick={() => startEditingProduct(product)}>Editar</Button>
-                          {product.status === 'draft' ? (
-                            <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={() => handleRestoreProduct(product)} disabled={isDeleting}>
-                              Restaurar
-                            </Button>
-                          ) : (
-                            <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={() => handleDeleteProduct(product)} disabled={isDeleting}>
-                              Borrar
-                            </Button>
-                          )}
-                          {product.status === 'draft' ? (
-                            <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={() => handleDeleteProductPermanently(product)} disabled={isDeleting}>
-                              Borrar
-                            </Button>
-                          ) : null}
-                        </div>
+                        )}
                       </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="overflow-x-auto border border-border bg-card">
-                  <table className="min-w-full text-left text-sm text-muted-foreground">
-                    <thead className="border-b border-border bg-background">
-                      <tr>
-                        <th className="px-4 py-3">Nombre</th>
-                        <th className="px-4 py-3">Colección</th>
-                        <th className="px-4 py-3">Precio</th>
-                        <th className="px-4 py-3">Estado</th>
-                        <th className="px-4 py-3">Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {visibleProducts.map((product) => (
-                        <tr key={product.id} className="border-b border-border last:border-b-0">
-                          <td className="px-4 py-3 text-foreground font-medium">{product.name}</td>
-                          <td className="px-4 py-3">{product.collection || 'Personalizados'}</td>
-                          <td className="px-4 py-3">${Number(product.price || 0).toFixed(2)}</td>
-                          <td className="px-4 py-3">
-                            <span className={`inline-flex rounded-full px-2 py-1 text-xs uppercase ${product.status === 'published' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                              {product.status === 'published' ? 'Publicado' : 'Borrador'}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex flex-wrap gap-2">
-                              <Button type="button" variant="outline" className="rounded-none" onClick={() => startEditingProduct(product)}>Editar</Button>
-                              {product.status === 'draft' ? (
-                                <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={() => handleRestoreProduct(product)} disabled={isDeleting}>
-                                  Restaurar
-                                </Button>
-                              ) : (
-                                <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={() => handleDeleteProduct(product)} disabled={isDeleting}>
-                                  Borrar
-                                </Button>
-                              )}
-                              {product.status === 'draft' ? (
-                                <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={() => handleDeleteProductPermanently(product)} disabled={isDeleting}>
-                                  Borrar
-                                </Button>
-                              ) : null}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{product.collection || 'Personalizados'}</p>
+                          <h4 className="mt-1 text-lg font-semibold text-foreground">{product.name}</h4>
+                        </div>
+                        <Badge variant={product.status === 'published' ? 'secondary' : 'outline'}>
+                          {product.status === 'published' ? 'Publicado' : 'Borrador'}
+                        </Badge>
+                      </div>
+                      <p className="mt-3 text-sm text-muted-foreground line-clamp-3">{product.description}</p>
+                      <div className="mt-4 flex items-center justify-between gap-3">
+                        <span className="text-lg font-semibold text-foreground">${Number(product.price || 0).toFixed(2)}</span>
+                        <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{product.images?.length || 1} fotos</span>
+                      </div>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <Button type="button" variant="outline" className="rounded-none" onClick={() => startEditingProduct(product)}>Editar</Button>
+                        {product.status === 'draft' ? (
+                          <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={() => handleRestoreProduct(product)} disabled={isDeleting}>
+                            Restaurar
+                          </Button>
+                        ) : (
+                          <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={() => handleDeleteProduct(product)} disabled={isDeleting}>
+                            Borrar
+                          </Button>
+                        )}
+                        {product.status === 'draft' ? (
+                          <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={() => handleDeleteProductPermanently(product)} disabled={isDeleting}>
+                            Borrar
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </>
           ) : null}
 
