@@ -2,6 +2,14 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Badge, Button } from '@/components/ui';
 import { Link } from 'react-router-dom';
 
+const isRealProductImage = (image) => {
+  if (!image || typeof image !== 'string') return false;
+  const normalized = image.trim();
+  if (!normalized) return false;
+  if (normalized.includes('placeholder.svg')) return false;
+  return true;
+};
+
 const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
   const safePerfume = perfume || {};
   const productName = safePerfume.name || 'G&D Essences';
@@ -120,11 +128,14 @@ const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
   };
 
   const galleryItems = React.useMemo(() => {
-    const images = Array.isArray(safePerfume.images) && safePerfume.images.length
-      ? safePerfume.images
-      : [safePerfume.image || safePerfume.images?.[0]];
+    const images = Array.isArray(safePerfume.images)
+      ? safePerfume.images.filter(isRealProductImage)
+      : [];
 
-    const items = images.filter(Boolean).map((image) => ({
+    const primaryImage = isRealProductImage(safePerfume.image) ? safePerfume.image : null;
+    const validImages = images.length ? images : primaryImage ? [primaryImage] : [];
+
+    const items = validImages.map((image) => ({
       type: 'image',
       src: resolveImageSrc(image),
     }));

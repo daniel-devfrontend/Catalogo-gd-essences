@@ -104,6 +104,8 @@ const ProductAdmin = () => {
         ? [...new Set([...(existingImages || []), ...imageUrls])]
         : existingImages;
 
+      const realImages = (nextImages || []).filter((image) => typeof image === 'string' && image.trim() && !image.includes('placeholder.svg'));
+
       const newProduct = {
         id: editingProductId || `custom-${Date.now()}`,
         name: form.name.trim(),
@@ -111,8 +113,8 @@ const ProductAdmin = () => {
         originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined,
         description: form.description.trim() || 'Producto añadido desde el panel de administración.',
         collection: form.collection,
-        image: imageUrls[0] || existingImages[0] || '/perfumes/placeholder.svg',
-        images: nextImages,
+        image: realImages[0] || '',
+        images: realImages,
         videoUrl: form.videoUrl.trim(),
         status: form.status,
         deletedAt: form.deletedAt || null,

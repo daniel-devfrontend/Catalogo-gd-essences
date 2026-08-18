@@ -2,6 +2,14 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui';
 
+const isRealProductImage = (image) => {
+  if (!image || typeof image !== 'string') return false;
+  const normalized = image.trim();
+  if (!normalized) return false;
+  if (normalized.includes('placeholder.svg')) return false;
+  return true;
+};
+
 const PerfumeCard = ({ perfume, onClick }) => {
   const resolveImageSrc = (image) => {
     if (!image) return '';
@@ -40,10 +48,10 @@ const PerfumeCard = ({ perfume, onClick }) => {
     return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
   };
 
-  const primaryImage = Array.isArray(perfume.images) && perfume.images.length
-    ? perfume.images[0]
-    : perfume.image;
-  const imageSrc = resolveImageSrc(primaryImage || '');
+  const primaryImage = Array.isArray(perfume.images)
+    ? perfume.images.find((image) => isRealProductImage(image))
+    : null;
+  const imageSrc = resolveImageSrc(primaryImage || (isRealProductImage(perfume.image) ? perfume.image : ''));
 
   const handleImageError = (event) => {
     event.currentTarget.onerror = null;
@@ -70,7 +78,11 @@ const PerfumeCard = ({ perfume, onClick }) => {
               onError={handleImageError}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
             />
-          ) : null}
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground text-xs tracking-[0.2em] uppercase">
+              Sin imagen
+            </div>
+          )}
           <div className="absolute top-4 left-4">
             <Badge variant="secondary" className="bg-background/90 text-foreground backdrop-blur-sm border-none rounded-none text-xs tracking-wider uppercase font-medium">
               {perfume.collection}
