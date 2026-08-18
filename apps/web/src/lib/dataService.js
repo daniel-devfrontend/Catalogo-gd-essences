@@ -8,6 +8,10 @@ export const createCollection = async (...args) => {
   return supabaseService.createCollection(...args);
 };
 
+export const deleteCollection = async (...args) => {
+  return supabaseService.deleteCollection(...args);
+};
+
 export const getProducts = async (...args) => {
   return supabaseService.getProducts(...args);
 };
@@ -26,6 +30,10 @@ export const addImagesToProduct = async (...args) => {
 
 export const deleteProduct = async (...args) => {
   return supabaseService.deleteProduct(...args);
+};
+
+export const restoreProduct = async (...args) => {
+  return supabaseService.restoreProduct(...args);
 };
 
 export const deleteProductPermanently = async (...args) => {

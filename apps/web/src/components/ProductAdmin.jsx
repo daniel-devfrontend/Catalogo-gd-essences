@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button, Input, Label, Textarea, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Badge } from '@/components/ui';
-import { getProducts, createOrUpdateProduct, uploadProductImage, addImagesToProduct, getCollections, createCollection, deleteProduct, deleteProductPermanently } from '@/lib/dataService';
+import { getProducts, createOrUpdateProduct, uploadProductImage, addImagesToProduct, getCollections, createCollection, deleteProduct, deleteProductPermanently, restoreProduct } from '@/lib/dataService';
+import { resolveProductImage } from '@/lib/productImageResolver';
 
 const emptyForm = {
   name: '',
@@ -201,6 +202,22 @@ const ProductAdmin = () => {
     }
   };
 
+  const handleRestoreProduct = async (product) => {
+    if (!window.confirm(`¿Volver a publicar "${product.name}"?`)) {
+      return;
+    }
+
+    try {
+      await restoreProduct(product.id);
+      const availableProducts = await getProducts();
+      setProducts(availableProducts);
+      setMessage('Producto restaurado y publicado nuevamente.');
+    } catch (error) {
+      console.error(error);
+      setMessage('No se pudo restaurar el producto.');
+    }
+  };
+
   const handleDeleteProductPermanently = async (product) => {
     if (!window.confirm(`¿Eliminar definitivamente "${product.name}"? Esta acción no se puede deshacer.`)) {
       return;
@@ -259,6 +276,27 @@ const ProductAdmin = () => {
     } catch (error) {
       console.error(error);
       setMessage('No se pudo crear la colección.');
+    }
+  };
+
+  const handleDeleteCollection = async (collection) => {
+    if (!window.confirm(`¿Eliminar la colección "${collection.title}" y todos sus perfumes asociados?`)) {
+      return;
+    }
+
+    try {
+      await deleteCollection(collection.id);
+      const [updatedCollections, updatedProducts] = await Promise.all([
+        getCollections(),
+        getProducts(),
+      ]);
+
+      setCollections(updatedCollections);
+      setProducts(updatedProducts);
+      setMessage('Colección eliminada y productos asociados movidos a borradores.');
+    } catch (error) {
+      console.error(error);
+      setMessage('No se pudo eliminar la colección.');
     }
   };
 
@@ -412,7 +450,10 @@ const ProductAdmin = () => {
                           <p className="text-sm font-medium text-foreground">{collection.title}</p>
                           <p className="text-xs text-muted-foreground">{collection.description || 'Sin descripción'}</p>
                         </div>
-                        <Button type="button" variant="outline" className="rounded-none" onClick={() => startEditingCollection(collection)}>Editar</Button>
+                        <div className="flex flex-wrap gap-2">
+                          <Button type="button" variant="outline" className="rounded-none" onClick={() => startEditingCollection(collection)}>Editar</Button>
+                          <Button type="button" variant="destructive" className="rounded-none" onClick={() => handleDeleteCollection(collection)}>Eliminar</Button>
+                        </div>
                       </div>
                     ))}
                 </div>
@@ -525,17 +566,20 @@ const ProductAdmin = () => {
                   {visibleProducts.map((product) => (
                     <div key={product.id} className="border border-border bg-card p-3 rounded-none">
                       <div className="flex items-start gap-4">
-                        {((Array.isArray(product.images) && product.images.length ? product.images[0] : product.image) && !String((Array.isArray(product.images) && product.images.length ? product.images[0] : product.image)).includes('placeholder.svg')) ? (
-                          <img
-                            src={(Array.isArray(product.images) && product.images.length ? product.images[0] : product.image)}
-                            alt={product.name}
-                            className="h-20 w-20 object-cover rounded-none"
-                          />
-                        ) : (
-                          <div className="h-20 w-20 rounded-none border border-dashed border-border bg-muted flex items-center justify-center text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                            Sin
-                          </div>
-                        )}
+                        {(() => {
+                          const resolvedImage = resolveProductImage(product);
+                          return resolvedImage ? (
+                            <img
+                              src={resolvedImage}
+                              alt={product.name}
+                              className="h-20 w-20 object-cover rounded-none"
+                            />
+                          ) : (
+                            <div className="h-20 w-20 rounded-none border border-dashed border-border bg-muted flex items-center justify-center text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                              Sin
+                            </div>
+                          );
+                        })()}
                         <div className="flex-1">
                           <div className="flex flex-wrap items-center gap-2">
                             <h4 className="text-lg font-semibold text-foreground">{product.name}</h4>
@@ -550,7 +594,11 @@ const ProductAdmin = () => {
                           </div>
                           <div className="mt-4 flex flex-wrap gap-2">
                             <Button type="button" variant="outline" className="rounded-none" onClick={() => startEditingProduct(product)}>Editar</Button>
-                            <Button type="button" variant="outline" className="rounded-none" onClick={() => handleDeleteProduct(product)}>Borrar</Button>
+                            {product.status === 'draft' ? (
+                              <Button type="button" variant="default" className="rounded-none" onClick={() => handleRestoreProduct(product)}>Restaurar</Button>
+                            ) : (
+                              <Button type="button" variant="outline" className="rounded-none" onClick={() => handleDeleteProduct(product)}>Borrar</Button>
+                            )}
                             {product.status === 'draft' ? (
                               <Button type="button" variant="destructive" className="rounded-none" onClick={() => handleDeleteProductPermanently(product)}>Eliminar definitivamente</Button>
                             ) : null}
@@ -621,7 +669,11 @@ const ProductAdmin = () => {
                         <td className="px-4 py-3">
                           <div className="flex flex-wrap gap-2">
                             <Button type="button" variant="outline" className="rounded-none" onClick={() => startEditingProduct(product)}>Editar</Button>
-                            <Button type="button" variant="outline" className="rounded-none" onClick={() => handleDeleteProduct(product)}>Borrar</Button>
+                            {product.status === 'draft' ? (
+                              <Button type="button" variant="default" className="rounded-none" onClick={() => handleRestoreProduct(product)}>Restaurar</Button>
+                            ) : (
+                              <Button type="button" variant="outline" className="rounded-none" onClick={() => handleDeleteProduct(product)}>Borrar</Button>
+                            )}
                             {product.status === 'draft' ? (
                               <Button type="button" variant="destructive" className="rounded-none" onClick={() => handleDeleteProductPermanently(product)}>Eliminar definitivamente</Button>
                             ) : null}

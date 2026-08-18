@@ -1,5 +1,4 @@
 import { supabase, supabaseEnabled } from '@/lib/supabaseClient';
-import { perfumes as basePerfumes, collections as baseCollections } from '@/data/perfumes.js';
 
 const isEnabled = supabaseEnabled;
 const PRODUCT_CACHE_KEY = 'gd-essences-products-cache';
@@ -47,12 +46,12 @@ const isExpiredDeletedProduct = (product) => {
   return Date.now() - deletedAt.getTime() > 7 * 24 * 60 * 60 * 1000;
 };
 
-const getLocalProductsFallback = () => [...basePerfumes];
-const getLocalCollectionsFallback = () => [...baseCollections];
-
-const fallbackWhenRemoteFails = (fallbackValue, error) => {
-  console.warn('Fallo al cargar datos remotos. Se usa el catálogo local.', error);
-  return fallbackValue;
+const normalizeProductStatus = (product) => {
+  const value = String(product?.status || '').trim().toLowerCase();
+  if (value === 'draft') return 'draft';
+  if (value === 'published') return 'published';
+  if (product?.deleted_at || product?.deletedAt) return 'draft';
+  return 'published';
 };
 
 const purgeExpiredDeletedProducts = async (products) => {
@@ -76,24 +75,19 @@ export const getCollections = async () => {
   }
 
   if (!isEnabled || !supabase) {
-    const fallback = getLocalCollectionsFallback();
-    writeCache(COLLECTION_CACHE_KEY, fallback);
-    return fallback;
+    return [];
   }
 
   try {
     const { data, error } = await supabase.from('collections').select('id,title,description').order('title');
     if (error) throw error;
 
-    const merged = new Map();
-    [...baseCollections, ...(data || [])].forEach((collection) => merged.set(collection.id, collection));
-    const result = Array.from(merged.values());
+    const result = Array.isArray(data) ? data : [];
     writeCache(COLLECTION_CACHE_KEY, result);
     return result;
   } catch (error) {
-    const fallback = getLocalCollectionsFallback();
-    writeCache(COLLECTION_CACHE_KEY, fallback);
-    return fallbackWhenRemoteFails(fallback, error);
+    console.warn('No se pudieron cargar las colecciones desde Supabase.', error);
+    return [];
   }
 };
 
@@ -108,6 +102,39 @@ export const createCollection = async (collection) => {
   return getCollections();
 };
 
+export const deleteCollection = async (collectionId) => {
+  if (!isEnabled || !supabase) {
+    throw new Error('Supabase no está configurado.');
+  }
+
+  const deletedAt = new Date().toISOString();
+
+  const { data: productsToDelete, error: fetchError } = await supabase
+    .from('products')
+    .select('id')
+    .eq('collection', collectionId);
+
+  if (fetchError) throw fetchError;
+
+  if (Array.isArray(productsToDelete) && productsToDelete.length) {
+    const productUpdates = productsToDelete.map(({ id }) => ({
+      id,
+      status: 'draft',
+      deleted_at: deletedAt,
+    }));
+
+    const { error: productsError } = await supabase.from('products').upsert(productUpdates, { onConflict: 'id' });
+    if (productsError) throw productsError;
+  }
+
+  const { error } = await supabase.from('collections').delete().eq('id', collectionId);
+  if (error) throw error;
+
+  clearCache(COLLECTION_CACHE_KEY);
+  clearCache(PRODUCT_CACHE_KEY);
+  return getCollections();
+};
+
 export const getProducts = async () => {
   const cachedProducts = readCache(PRODUCT_CACHE_KEY);
   if (cachedProducts) {
@@ -115,36 +142,26 @@ export const getProducts = async () => {
   }
 
   if (!isEnabled || !supabase) {
-    const fallback = getLocalProductsFallback();
-    writeCache(PRODUCT_CACHE_KEY, fallback);
-    return fallback;
+    return [];
   }
 
   try {
     const { data, error } = await supabase.from('products').select('*');
     if (error) throw error;
 
-    const merged = new Map();
-    basePerfumes.forEach((product) => merged.set(product.id, { ...product, status: 'published' }));
-    (data || []).forEach((product) => {
-      const existing = merged.get(product.id) || {};
-      merged.set(product.id, {
-        ...existing,
-        ...product,
-        originalPrice: product.original_price ?? product.originalPrice,
-        videoUrl: product.video_url || product.videoUrl,
-        deletedAt: product.deleted_at ?? product.deletedAt ?? null,
-        status: product.status || (product.deleted_at ? 'draft' : existing.status || 'published'),
-      });
-    });
+    const result = await purgeExpiredDeletedProducts((data || []).map((product) => ({
+      ...product,
+      originalPrice: product.original_price ?? product.originalPrice,
+      videoUrl: product.video_url || product.videoUrl,
+      deletedAt: product.deleted_at ?? product.deletedAt ?? null,
+      status: normalizeProductStatus(product),
+    })));
 
-    const result = await purgeExpiredDeletedProducts(Array.from(merged.values()));
     writeCache(PRODUCT_CACHE_KEY, result);
     return result;
   } catch (error) {
-    const fallback = getLocalProductsFallback();
-    writeCache(PRODUCT_CACHE_KEY, fallback);
-    return fallbackWhenRemoteFails(fallback, error);
+    console.warn('No se pudieron cargar los productos desde Supabase.', error);
+    return [];
   }
 };
 
@@ -230,6 +247,17 @@ export const deleteProduct = async (productId) => {
 
   const deletedAt = new Date().toISOString();
   const { data, error } = await supabase.from('products').upsert({ id: productId, status: 'draft', deleted_at: deletedAt }, { onConflict: 'id' }).select('*');
+  if (error) throw error;
+  clearCache(PRODUCT_CACHE_KEY);
+  return data;
+};
+
+export const restoreProduct = async (productId) => {
+  if (!isEnabled || !supabase) {
+    throw new Error('Supabase no está configurado.');
+  }
+
+  const { data, error } = await supabase.from('products').upsert({ id: productId, status: 'published', deleted_at: null }, { onConflict: 'id' }).select('*');
   if (error) throw error;
   clearCache(PRODUCT_CACHE_KEY);
   return data;
