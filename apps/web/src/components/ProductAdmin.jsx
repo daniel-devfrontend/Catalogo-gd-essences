@@ -647,13 +647,13 @@ const ProductAdmin = () => {
                                 {isDeleting ? 'Procesando...' : 'Restaurar'}
                               </Button>
                             ) : (
-                              <Button type="button" variant="outline" className="rounded-none" onClick={() => handleDeleteProduct(product)} disabled={isDeleting}>
+                              <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={() => handleDeleteProduct(product)} disabled={isDeleting}>
                                 {isDeleting ? 'Borrando...' : 'Borrar'}
                               </Button>
                             )}
                             {product.status === 'draft' ? (
-                              <Button type="button" variant="destructive" className="rounded-none" onClick={() => handleDeleteProductPermanently(product)} disabled={isDeleting}>
-                                {isDeleting ? 'Borrando...' : 'Eliminar definitivamente'}
+                              <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={() => handleDeleteProductPermanently(product)} disabled={isDeleting}>
+                                {isDeleting ? 'Borrando...' : 'Borrar'}
                               </Button>
                             ) : null}
                           </div>
@@ -728,13 +728,13 @@ const ProductAdmin = () => {
                                 {isDeleting ? 'Procesando...' : 'Restaurar'}
                               </Button>
                             ) : (
-                              <Button type="button" variant="outline" className="rounded-none" onClick={() => handleDeleteProduct(product)} disabled={isDeleting}>
+                              <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={() => handleDeleteProduct(product)} disabled={isDeleting}>
                                 {isDeleting ? 'Borrando...' : 'Borrar'}
                               </Button>
                             )}
                             {product.status === 'draft' ? (
-                              <Button type="button" variant="destructive" className="rounded-none" onClick={() => handleDeleteProductPermanently(product)} disabled={isDeleting}>
-                                {isDeleting ? 'Borrando...' : 'Eliminar definitivamente'}
+                              <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={() => handleDeleteProductPermanently(product)} disabled={isDeleting}>
+                                {isDeleting ? 'Borrando...' : 'Borrar'}
                               </Button>
                             ) : null}
                           </div>
