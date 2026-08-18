@@ -2,6 +2,7 @@ import React from 'react';
 import { Button, Input, Label, Textarea, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Badge } from '@/components/ui';
 import { getProducts, createOrUpdateProduct, uploadProductImage, addImagesToProduct, getCollections, createCollection, deleteCollection, deleteProduct, deleteProductPermanently, restoreProduct } from '@/lib/dataService';
 import { resolveProductImage } from '@/lib/productImageResolver';
+import PerfumeDetailModal from './PerfumeDetailModal';
 
 const emptyForm = {
   name: '',
@@ -42,6 +43,7 @@ const ProductAdmin = () => {
   const [editingProductId, setEditingProductId] = React.useState(null);
   const [editingCollectionId, setEditingCollectionId] = React.useState(null);
   const [selectedProductId, setSelectedProductId] = React.useState(null);
+  const [selectedPerfume, setSelectedPerfume] = React.useState(null);
   const [activeTab, setActiveTab] = React.useState('products');
 
   const visibleProducts = React.useMemo(() => {
@@ -648,7 +650,19 @@ const ProductAdmin = () => {
                 {visibleProducts.map((product) => {
                   const resolvedImage = resolveProductImage(product);
                   return (
-                    <div key={product.id} className="border border-border bg-card p-3">
+                    <div
+                      key={product.id}
+                      className="cursor-pointer border border-border bg-card p-3 transition hover:border-foreground/30"
+                      onClick={() => setSelectedPerfume(product)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          setSelectedPerfume(product);
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                    >
                       <div className="mb-3 overflow-hidden border border-border bg-background">
                         {resolvedImage ? (
                           <img src={resolvedImage} alt={product.name} className="h-52 w-full object-cover" />
@@ -669,22 +683,29 @@ const ProductAdmin = () => {
                       </div>
                       <p className="mt-3 text-sm text-muted-foreground line-clamp-3">{product.description}</p>
                       <div className="mt-4 flex items-center justify-between gap-3">
-                        <span className="text-lg font-semibold text-foreground">${Number(product.price || 0).toFixed(2)}</span>
+                        <div>
+                          <span className="text-lg font-semibold text-foreground">${Number(product.price || 0).toFixed(2)}</span>
+                          {product.originalPrice ? (
+                            <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.18em] text-amber-500 line-through">
+                              Original ${Number(product.originalPrice).toFixed(2)}
+                            </p>
+                          ) : null}
+                        </div>
                         <span className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{product.images?.length || 1} fotos</span>
                       </div>
                       <div className="mt-4 flex flex-wrap gap-2">
-                        <Button type="button" variant="outline" className="rounded-none" onClick={() => startEditingProduct(product)}>Editar</Button>
+                        <Button type="button" variant="outline" className="rounded-none" onClick={(event) => { event.stopPropagation(); startEditingProduct(product); }}>Editar</Button>
                         {product.status === 'draft' ? (
-                          <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={() => handleRestoreProduct(product)} disabled={isDeleting}>
+                          <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={(event) => { event.stopPropagation(); handleRestoreProduct(product); }} disabled={isDeleting}>
                             Restaurar
                           </Button>
                         ) : (
-                          <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={() => handleDeleteProduct(product)} disabled={isDeleting}>
+                          <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={(event) => { event.stopPropagation(); handleDeleteProduct(product); }} disabled={isDeleting}>
                             Borrar
                           </Button>
                         )}
                         {product.status === 'draft' ? (
-                          <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={() => handleDeleteProductPermanently(product)} disabled={isDeleting}>
+                          <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={(event) => { event.stopPropagation(); handleDeleteProductPermanently(product); }} disabled={isDeleting}>
                             Borrar
                           </Button>
                         ) : null}
@@ -728,6 +749,12 @@ const ProductAdmin = () => {
           ) : null}
         </div>
       )}
+
+      <PerfumeDetailModal
+        perfume={selectedPerfume}
+        isOpen={Boolean(selectedPerfume)}
+        onClose={() => setSelectedPerfume(null)}
+      />
     </section>
   );
 };
