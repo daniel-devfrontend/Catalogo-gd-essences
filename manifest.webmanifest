@@ -1,0 +1,24 @@
+{
+  "name": "G&D Essences",
+  "short_name": "G&D Essences",
+  "description": "Catalogo de fragancias G&D Essences",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "./Logos/LogoWhite1.jpeg",
+      "sizes": "1280x1280",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "./Logos/LogoBlack1.jpeg",
+      "sizes": "1280x1280",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}
