@@ -5,7 +5,7 @@
   "description": "Catalogo de fragancias G&D Essences",
   "start_url": "/Catalogo-gd-essences/#/catalogo",
   "scope": "/Catalogo-gd-essences/",
-  "display": "standalone",
+  "display": "browser",
   "background_color": "#000000",
   "theme_color": "#000000",
   "icons": [
