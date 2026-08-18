@@ -72,12 +72,9 @@ const purgeExpiredDeletedProducts = async (products) => {
 
 export const getCollections = async () => {
   const cachedCollections = readCache(COLLECTION_CACHE_KEY);
-  if (cachedCollections) {
-    return cachedCollections;
-  }
 
   if (!isEnabled || !supabase) {
-    return [];
+    return cachedCollections || [];
   }
 
   try {
@@ -96,7 +93,7 @@ export const getCollections = async () => {
     return result;
   } catch (error) {
     console.warn('No se pudieron cargar las colecciones desde Supabase.', error);
-    return [];
+    return cachedCollections || [];
   }
 };
 
@@ -148,12 +145,9 @@ export const deleteCollection = async (collectionId) => {
 
 export const getProducts = async () => {
   const cachedProducts = readCache(PRODUCT_CACHE_KEY);
-  if (cachedProducts) {
-    return cachedProducts;
-  }
 
   if (!isEnabled || !supabase) {
-    return [];
+    return cachedProducts || [];
   }
 
   try {
@@ -178,7 +172,7 @@ export const getProducts = async () => {
     return result;
   } catch (error) {
     console.warn('No se pudieron cargar los productos desde Supabase.', error);
-    return [];
+    return cachedProducts || [];
   }
 };
 
