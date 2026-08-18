@@ -1,7 +1,7 @@
 {
   "name": "G&D Essences Catalogo",
   "short_name": "G&D Catalogo",
-  "id": "/Catalogo-gd-essences/catalogo-app-v2",
+  "id": "/Catalogo-gd-essences/catalogo-app-v3",
   "description": "Catalogo de fragancias G&D Essences",
   "start_url": "/Catalogo-gd-essences/#/catalogo",
   "scope": "/Catalogo-gd-essences/",
