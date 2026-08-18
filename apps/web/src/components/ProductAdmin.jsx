@@ -195,8 +195,7 @@ const ProductAdmin = () => {
 
     try {
       await deleteProduct(product.id);
-      const availableProducts = await getProducts();
-      setProducts(availableProducts);
+      setProducts((previous) => previous.filter((item) => item.id !== product.id));
       if (editingProductId === product.id) {
         cancelEdit();
       }
@@ -246,8 +245,7 @@ const ProductAdmin = () => {
 
     try {
       await deleteProductPermanently(product.id);
-      const availableProducts = await getProducts();
-      setProducts(availableProducts);
+      setProducts((previous) => previous.filter((item) => item.id !== product.id));
       if (editingProductId === product.id) {
         cancelEdit();
       }
@@ -315,14 +313,9 @@ const ProductAdmin = () => {
 
     try {
       await deleteCollection(collection.id);
-      const [updatedCollections, updatedProducts] = await Promise.all([
-        getCollections(),
-        getProducts(),
-      ]);
-
-      setCollections(updatedCollections);
-      setProducts(updatedProducts);
-      setMessage('Colección eliminada y productos asociados movidos a borradores.');
+      setCollections((previous) => previous.filter((item) => item.id !== collection.id));
+      setProducts((previous) => previous.filter((item) => item.collection !== collection.id));
+      setMessage('Colección eliminada correctamente.');
       setToast({ type: 'success', text: 'Colección eliminada.' });
     } catch (error) {
       console.error(error);

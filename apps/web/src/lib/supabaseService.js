@@ -127,7 +127,7 @@ export const deleteCollection = async (collectionId) => {
 
   clearCache(COLLECTION_CACHE_KEY);
   clearCache(PRODUCT_CACHE_KEY);
-  return getCollections();
+  return true;
 };
 
 export const getProducts = async () => {
@@ -243,7 +243,7 @@ export const deleteProduct = async (productId) => {
   const { error } = await supabase.from('products').delete().eq('id', productId);
   if (error) throw error;
   clearCache(PRODUCT_CACHE_KEY);
-  return getProducts();
+  return true;
 };
 
 export const restoreProduct = async (productId) => {
