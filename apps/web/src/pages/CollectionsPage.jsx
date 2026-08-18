@@ -7,12 +7,18 @@ import { getCatalogData } from '@/lib/catalogData';
 const CollectionsPage = () => {
   const [perfumes, setPerfumes] = React.useState([]);
   const [collections, setCollections] = React.useState([]);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
     const loadData = async () => {
-      const { products, collections } = await getCatalogData();
-      setPerfumes(products.filter((product) => product.status !== 'draft'));
-      setCollections(collections);
+      setIsLoading(true);
+      try {
+        const { products, collections } = await getCatalogData();
+        setPerfumes(products.filter((product) => product.status !== 'draft'));
+        setCollections(collections);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadData();
@@ -47,18 +53,40 @@ const CollectionsPage = () => {
               </p>
             </motion.div>
 
-            <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
-              {collections.map((collection, index) => {
-                const count = perfumes.filter(p => p.collection === collection.id).length;
-                return (
-                  <CollectionCard
-                    key={collection.id}
-                    collection={{ ...collection, count }}
-                    index={index}
-                  />
-                );
-              })}
+            <div className="mb-6 text-xs font-medium uppercase tracking-widest text-muted-foreground">
+              {isLoading ? 'Cargando...' : `${collections.length} Colecciones`}
             </div>
+
+            {isLoading ? (
+              <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
+                {Array.from({ length: 8 }).map((_, index) => (
+                  <div key={`collection-skeleton-${index}`} className="animate-pulse border border-border bg-card p-8">
+                    <div className="mb-6 flex items-start justify-between">
+                      <div className="h-7 w-3/4 bg-muted" />
+                      <div className="h-5 w-5 bg-muted" />
+                    </div>
+                    <div className="mb-2 h-3 w-full bg-muted" />
+                    <div className="mb-8 h-3 w-5/6 bg-muted" />
+                    <div className="border-t border-border/50 pt-4">
+                      <div className="h-3 w-1/2 bg-muted" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
+                {collections.map((collection, index) => {
+                  const count = perfumes.filter(p => p.collection === collection.id).length;
+                  return (
+                    <CollectionCard
+                      key={collection.id}
+                      collection={{ ...collection, count }}
+                      index={index}
+                    />
+                  );
+                })}
+              </div>
+            )}
           </div>
         </main>
 
