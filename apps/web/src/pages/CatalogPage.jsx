@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet';
 import { useSearchParams } from 'react-router-dom';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { Input, Button, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Header, Footer, PerfumeCard, PerfumeDetailModal } from '@/components';
-import { getCollections, getProducts } from '@/lib/dataService';
+import { getCatalogData } from '@/lib/catalogData';
 
 const CatalogPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -23,14 +23,10 @@ const CatalogPage = () => {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        const [availablePerfumes, availableCollections] = await Promise.all([
-          getProducts(),
-          getCollections(),
-        ]);
-        setPerfumes((Array.isArray(availablePerfumes) ? availablePerfumes : []).filter((product) => product.status !== 'draft'));
-        setCollections(Array.isArray(availableCollections) ? availableCollections : []);
+        const { products, collections } = await getCatalogData();
+        setPerfumes(products.filter((product) => product.status !== 'draft'));
+        setCollections(collections);
       } catch (error) {
-        console.warn('No se pudo cargar catálogo remoto, usando catálogo local.', error);
         setPerfumes([]);
         setCollections([]);
       } finally {

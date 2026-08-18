@@ -2,7 +2,7 @@ import React from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
 import { Header, Footer, CollectionCard } from '@/components';
-import { getCollections, getProducts } from '@/lib/dataService';
+import { getCatalogData } from '@/lib/catalogData';
 
 const CollectionsPage = () => {
   const [perfumes, setPerfumes] = React.useState([]);
@@ -10,12 +10,9 @@ const CollectionsPage = () => {
 
   React.useEffect(() => {
     const loadData = async () => {
-      const [availablePerfumes, availableCollections] = await Promise.all([
-        getProducts(),
-        getCollections(),
-      ]);
-      setPerfumes(availablePerfumes.filter((product) => product.status !== 'draft'));
-      setCollections(availableCollections);
+      const { products, collections } = await getCatalogData();
+      setPerfumes(products.filter((product) => product.status !== 'draft'));
+      setCollections(collections);
     };
 
     loadData();

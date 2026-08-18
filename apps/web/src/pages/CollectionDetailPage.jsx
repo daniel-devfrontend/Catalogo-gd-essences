@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Header, Footer, PerfumeCard, PerfumeDetailModal } from '@/components';
-import { getCollections, getProducts } from '@/lib/dataService';
+import { getCatalogData } from '@/lib/catalogData';
 
 const CollectionDetailPage = () => {
   const { id } = useParams();
@@ -10,12 +10,9 @@ const CollectionDetailPage = () => {
 
   React.useEffect(() => {
     const loadData = async () => {
-      const [availablePerfumes, availableCollections] = await Promise.all([
-        getProducts(),
-        getCollections(),
-      ]);
-      setPerfumes(availablePerfumes.filter((product) => product.status !== 'draft'));
-      setCollections(availableCollections);
+      const { products, collections } = await getCatalogData();
+      setPerfumes(products.filter((product) => product.status !== 'draft'));
+      setCollections(collections);
     };
 
     loadData();
