@@ -498,8 +498,8 @@ const ProductAdmin = () => {
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <Button type="button" variant="outline" className="rounded-none" onClick={() => startEditingCollection(collection)}>Editar</Button>
-                          <Button type="button" variant="destructive" className="rounded-none" onClick={() => handleDeleteCollection(collection)} disabled={isDeleting}>
-                            {isDeleting ? 'Borrando...' : 'Eliminar'}
+                          <Button type="button" className="rounded-none bg-black text-white hover:bg-black/90" onClick={() => handleDeleteCollection(collection)} disabled={isDeleting}>
+                            {isDeleting ? 'Borrando...' : 'Borrar'}
                           </Button>
                         </div>
                       </div>
