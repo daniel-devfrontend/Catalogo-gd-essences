@@ -1,6 +1,7 @@
 {
   "name": "G&D Essences",
   "short_name": "G&D Essences",
+  "id": "./admin-app-v2",
   "description": "Catalogo de fragancias G&D Essences",
   "start_url": "./#/admin",
   "scope": "./",
