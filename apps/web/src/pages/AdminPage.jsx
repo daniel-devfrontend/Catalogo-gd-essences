@@ -65,6 +65,30 @@ const AdminPage = () => {
   const [user, setUser] = React.useState(null);
   const [status, setStatus] = React.useState('loading');
   const [errorMessage, setErrorMessage] = React.useState('');
+  const [installPrompt, setInstallPrompt] = React.useState(null);
+  const [installMessage, setInstallMessage] = React.useState('');
+
+  React.useEffect(() => {
+    const handleInstallAvailable = (event) => {
+      event.preventDefault();
+      setInstallPrompt(event);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleInstallAvailable);
+    return () => window.removeEventListener('beforeinstallprompt', handleInstallAvailable);
+  }, []);
+
+  const handleInstallAdmin = async () => {
+    if (!installPrompt) {
+      setInstallMessage('La instalación no está disponible ahora. Abre el menú del navegador y elige "Instalar aplicación".');
+      return;
+    }
+
+    installPrompt.prompt();
+    await installPrompt.userChoice;
+    setInstallPrompt(null);
+    setInstallMessage('');
+  };
 
   React.useEffect(() => {
     if (!isSupabaseEnabled()) {
@@ -108,15 +132,19 @@ const AdminPage = () => {
         <main className="flex-1 py-20">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-6 flex justify-end">
-              <a
-                href={`${import.meta.env.BASE_URL}instalar-admin.html`}
+              <button
+                type="button"
+                onClick={handleInstallAdmin}
                 className="inline-flex items-center gap-2 border border-border px-3 py-2 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
                 title="Instalar G&D Admin"
               >
                 <Download className="h-3.5 w-3.5" aria-hidden="true" />
                 Instalar G&D Admin
-              </a>
+              </button>
             </div>
+            {installMessage ? (
+              <p className="mb-6 text-right text-xs text-muted-foreground" aria-live="polite">{installMessage}</p>
+            ) : null}
 
             {status === 'loading' && (
               <div className="rounded-none border border-border bg-card p-8 text-center text-foreground">
