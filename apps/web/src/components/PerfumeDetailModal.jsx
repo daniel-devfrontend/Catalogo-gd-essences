@@ -1,14 +1,7 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Badge, Button } from '@/components/ui';
 import { Link } from 'react-router-dom';
-
-const isRealProductImage = (image) => {
-  if (!image || typeof image !== 'string') return false;
-  const normalized = image.trim();
-  if (!normalized) return false;
-  if (normalized.includes('placeholder.svg')) return false;
-  return true;
-};
+import { resolveProductImage, isRealProductImage } from '@/lib/productImageResolver';
 
 const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
   const safePerfume = perfume || {};
@@ -103,7 +96,7 @@ const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
       ? safePerfume.images.filter(isRealProductImage)
       : [];
 
-    const primaryImage = isRealProductImage(safePerfume.image) ? safePerfume.image : null;
+    const primaryImage = resolveProductImage(safePerfume);
     const validImages = images.length ? images : primaryImage ? [primaryImage] : [];
 
     const items = validImages.map((image) => ({

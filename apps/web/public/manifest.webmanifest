@@ -1,0 +1,31 @@
+{
+  "name": "G&D Essences",
+  "short_name": "G&D Essences",
+  "id": "/Catalogo-gd-essences/admin-app-v3",
+  "description": "Catalogo de fragancias G&D Essences",
+  "start_url": "/Catalogo-gd-essences/#/admin",
+  "scope": "/Catalogo-gd-essences/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/Catalogo-gd-essences/Logos/LogoApp-192.png?v=3",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/Catalogo-gd-essences/Logos/LogoApp-512.png?v=3",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/Catalogo-gd-essences/Logos/LogoApp.jpeg?v=3",
+      "sizes": "796x807",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,14 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui';
-
-const isRealProductImage = (image) => {
-  if (!image || typeof image !== 'string') return false;
-  const normalized = image.trim();
-  if (!normalized) return false;
-  if (normalized.includes('placeholder.svg')) return false;
-  return true;
-};
+import { resolveProductImage } from '@/lib/productImageResolver';
 
 const PerfumeCard = ({ perfume, onClick }) => {
   const resolveImageSrc = (image) => {
@@ -19,14 +12,8 @@ const PerfumeCard = ({ perfume, onClick }) => {
     return `${import.meta.env.BASE_URL}${image.replace(/^\/+/, '')}`;
   };
 
-  const primaryImage = Array.isArray(perfume.images)
-    ? perfume.images.find((image) => isRealProductImage(image))
-    : null;
-  const imageSrc = primaryImage
-    ? resolveImageSrc(primaryImage)
-    : isRealProductImage(perfume.image)
-      ? resolveImageSrc(perfume.image)
-      : '';
+  const primaryImage = resolveProductImage(perfume);
+  const imageSrc = primaryImage ? resolveImageSrc(primaryImage) : '';
 
   return (
     <motion.div

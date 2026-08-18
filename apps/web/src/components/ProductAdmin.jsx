@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Input, Label, Textarea, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Badge } from '@/components/ui';
+import { Button, Input, Label, Textarea, Badge } from '@/components/ui';
 import { getProducts, createOrUpdateProduct, uploadProductImage, addImagesToProduct, getCollections, createCollection, deleteCollection, deleteProduct, deleteProductPermanently, restoreProduct } from '@/lib/dataService';
 import { resolveProductImage } from '@/lib/productImageResolver';
 import PerfumeDetailModal from './PerfumeDetailModal';
@@ -27,8 +27,11 @@ const ProductAdmin = () => {
   const [form, setForm] = React.useState(emptyForm);
   const [collectionForm, setCollectionForm] = React.useState({ title: '', description: '' });
   const [pendingFiles, setPendingFiles] = React.useState([]);
+  const [pendingImagePreviews, setPendingImagePreviews] = React.useState([]);
   const [persistedImageUrls, setPersistedImageUrls] = React.useState([]);
   const [selectedFileNames, setSelectedFileNames] = React.useState([]);
+  const [selectedSavedImageIndex, setSelectedSavedImageIndex] = React.useState(null);
+  const [selectedQueuedImageIndex, setSelectedQueuedImageIndex] = React.useState(null);
   const [message, setMessage] = React.useState('');
   const [toast, setToast] = React.useState(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -48,6 +51,33 @@ const ProductAdmin = () => {
   const [selectedProductId, setSelectedProductId] = React.useState(null);
   const [selectedPerfume, setSelectedPerfume] = React.useState(null);
   const [activeTab, setActiveTab] = React.useState('products');
+
+  const collectionOptions = React.useMemo(() => {
+    const base = [{ id: 'personalizados', title: 'Personalizados' }];
+    const mappedCollections = Array.isArray(collections)
+      ? collections
+          .map((collection) => ({
+            id: String(collection?.id ?? '').trim(),
+            title: String(collection?.title ?? 'Colección'),
+          }))
+          .filter((collection) => Boolean(collection.id))
+      : [];
+
+    return [...base, ...mappedCollections];
+  }, [collections]);
+
+  const validCollectionValue = React.useMemo(() => {
+    if (!form.collection) return 'personalizados';
+    return collectionOptions.some((collection) => collection.id === String(form.collection))
+      ? String(form.collection)
+      : 'personalizados';
+  }, [collectionOptions, form.collection]);
+
+  React.useEffect(() => {
+    if (form.collection !== validCollectionValue) {
+      setForm((previous) => ({ ...previous, collection: validCollectionValue }));
+    }
+  }, [form.collection, validCollectionValue]);
 
   const visibleProducts = React.useMemo(() => {
     return products
@@ -88,23 +118,25 @@ const ProductAdmin = () => {
     return () => window.clearTimeout(timeout);
   }, [toast]);
 
-  React.useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [availableProducts, availableCollections] = await Promise.all([
-          getProducts(),
-          getCollections(),
-        ]);
+  const refreshCatalogData = React.useCallback(async () => {
+    setIsLoading(true);
 
-        setProducts(availableProducts);
-        setCollections(availableCollections);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    try {
+      const [availableProducts, availableCollections] = await Promise.all([
+        getProducts(),
+        getCollections(),
+      ]);
 
-    loadData();
+      setProducts(availableProducts);
+      setCollections(availableCollections);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  React.useEffect(() => {
+    refreshCatalogData();
+  }, [refreshCatalogData]);
 
   React.useEffect(() => {
     const handleOutside = (e) => {
@@ -166,22 +198,28 @@ const ProductAdmin = () => {
       };
 
       await createOrUpdateProduct(newProduct);
-      const availableProducts = await getProducts();
-      setProducts(availableProducts);
       setForm(emptyForm);
       setPendingFiles([]);
+      setPendingImagePreviews([]);
       setPersistedImageUrls([]);
       setSelectedFileNames([]);
-      setSelectedProductId(newProduct.id);
+      setSelectedProductId(null);
+      setSelectedPerfume(null);
       setEditingProductId(null);
+      setSelectedSavedImageIndex(null);
+      setSelectedQueuedImageIndex(null);
+      setMessage('');
+      setIsLoading(true);
+      const availableProducts = await getProducts();
+      setProducts(availableProducts);
       setActiveTab('products');
+      setIsLoading(false);
 
       const successMessage = editingProductId ? 'Cambio guardado exitosamente.' : 'Producto registrado exitosamente.';
       setToast({
         type: 'success',
         text: successMessage,
       });
-      setMessage(successMessage);
     } catch (error) {
       console.error(error);
       const detail = error?.details ? ` ${error.details}` : '';
@@ -197,11 +235,61 @@ const ProductAdmin = () => {
     }
   };
 
-  const handleFiles = (event) => {
+  const handleFiles = async (event) => {
     const files = Array.from(event.target.files || []);
     if (!files.length) return;
+
+    const previews = await Promise.all(files.map((file) => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve({ id: `${file.name}-${Date.now()}-${Math.random()}`, name: file.name, src: reader.result, file });
+      reader.onerror = () => reject(new Error('No se pudo leer la imagen seleccionada.'));
+      reader.readAsDataURL(file);
+    })));
+
     setPendingFiles((previous) => [...previous, ...files]);
+    setPendingImagePreviews((previous) => [...previous, ...previews]);
     setSelectedFileNames((previous) => [...previous, ...files.map((file) => file.name)]);
+  };
+
+  const removeQueuedFile = (indexToRemove) => {
+    setPendingFiles((previous) => previous.filter((_, index) => index !== indexToRemove));
+    setPendingImagePreviews((previous) => previous.filter((_, index) => index !== indexToRemove));
+    setSelectedFileNames((previous) => previous.filter((_, index) => index !== indexToRemove));
+    setSelectedQueuedImageIndex((previous) => (previous === indexToRemove ? null : previous));
+  };
+
+  const prioritizeQueuedImage = (imageIndex) => {
+    setPendingFiles((previous) => {
+      if (!previous.length || imageIndex < 0 || imageIndex >= previous.length) return previous;
+      const next = [...previous];
+      const [item] = next.splice(imageIndex, 1);
+      next.unshift(item);
+      return next;
+    });
+    setPendingImagePreviews((previous) => {
+      if (!previous.length || imageIndex < 0 || imageIndex >= previous.length) return previous;
+      const next = [...previous];
+      const [item] = next.splice(imageIndex, 1);
+      next.unshift(item);
+      return next;
+    });
+    setSelectedQueuedImageIndex(null);
+  };
+
+  const removePersistedImage = (imageIndex) => {
+    setPersistedImageUrls((previous) => previous.filter((_, index) => index !== imageIndex));
+    setSelectedSavedImageIndex((previous) => (previous === imageIndex ? null : previous));
+  };
+
+  const prioritizePersistedImage = (imageIndex) => {
+    setPersistedImageUrls((previous) => {
+      if (!previous.length || imageIndex < 0 || imageIndex >= previous.length) return previous;
+      const next = [...previous];
+      const [item] = next.splice(imageIndex, 1);
+      next.unshift(item);
+      return next;
+    });
+    setSelectedSavedImageIndex(null);
   };
 
   const startEditingProduct = (product) => {
@@ -223,11 +311,15 @@ const ProductAdmin = () => {
       deletedAt: product.deleted_at || product.deletedAt || null,
     });
     setPersistedImageUrls(existingImages);
+    setSelectedSavedImageIndex(null);
+    setSelectedQueuedImageIndex(null);
     setSelectedFileNames([]);
     setPendingFiles([]);
+    setPendingImagePreviews([]);
     setEditingProductId(product.id);
     setSelectedProductId(product.id);
-    setActiveTab('add-product');
+    setSelectedPerfume(null);
+    setActiveTab('editor');
     setMessage('');
 
     setTimeout(() => {
@@ -240,8 +332,13 @@ const ProductAdmin = () => {
     setEditingProductId(null);
     setForm(emptyForm);
     setPendingFiles([]);
+    setPendingImagePreviews([]);
     setPersistedImageUrls([]);
     setSelectedFileNames([]);
+    setSelectedSavedImageIndex(null);
+    setSelectedQueuedImageIndex(null);
+    setActiveTab('products');
+    setSelectedProductId(null);
   };
 
   const handleDeleteProduct = async (product) => {
@@ -424,24 +521,26 @@ const ProductAdmin = () => {
           </h2>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          {[
-            { id: 'products', label: 'Productos' },
-            { id: 'add-product', label: 'Añadir producto' },
-            { id: 'collections', label: 'Colecciones' },
-            { id: 'add-collection', label: 'Añadir colección' },
-          ].map((tab) => (
-            <Button
-              key={tab.id}
-              type="button"
-              variant={activeTab === tab.id ? 'default' : 'outline'}
-              className="rounded-none"
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
-            </Button>
-          ))}
-        </div>
+        {!editingProductId ? (
+          <div className="flex flex-wrap gap-2">
+            {[
+              { id: 'products', label: 'Productos' },
+              { id: 'add-product', label: 'Añadir producto' },
+              { id: 'collections', label: 'Colecciones' },
+              { id: 'add-collection', label: 'Añadir colección' },
+            ].map((tab) => (
+              <Button
+                key={tab.id}
+                type="button"
+                variant={activeTab === tab.id ? 'default' : 'outline'}
+                className="rounded-none"
+                onClick={() => setActiveTab(tab.id)}
+              >
+                {tab.label}
+              </Button>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       {message ? <p className="mb-6 text-sm text-foreground">{message}</p> : null}
@@ -471,12 +570,12 @@ const ProductAdmin = () => {
         </div>
       ) : null}
 
-      {activeTab === 'add-product' ? (
+      {(activeTab === 'add-product' || activeTab === 'editor') ? (
         <div className="mb-8 rounded-none border border-border bg-card p-6">
           <div className="mb-6">
             <div>
-              <h3 className="text-xl font-medium text-foreground">Añadir producto</h3>
-              <p className="mt-1 text-sm text-muted-foreground">Completa los datos y guarda el perfume en el catálogo.</p>
+              <h3 className="text-xl font-medium text-foreground">{editingProductId ? 'Editor del producto' : 'Añadir producto'}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{editingProductId ? 'Actualiza el perfume y ajusta sus fotos guardadas.' : 'Completa los datos y guarda el perfume en el catálogo.'}</p>
             </div>
           </div>
 
@@ -499,52 +598,76 @@ const ProductAdmin = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="product-collection">Colección</Label>
-              <Select value={form.collection} onValueChange={(value) => setForm({ ...form, collection: value })}>
-                <SelectTrigger id="product-collection">
-                  <SelectValue placeholder="Colección" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="personalizados">Personalizados</SelectItem>
-                  {collections.map((collection) => (
-                    <SelectItem key={collection.id} value={collection.id}>
-                      {collection.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <select
+                id="product-collection"
+                value={validCollectionValue}
+                onChange={(event) => setForm((previous) => ({ ...previous, collection: event.target.value }))}
+                className="flex h-10 w-full rounded-none border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-foreground"
+              >
+                {collectionOptions.map((collection) => (
+                  <option key={collection.id} value={collection.id}>
+                    {collection.title}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="product-video-url">Video de YouTube</Label>
               <Input id="product-video-url" value={form.videoUrl} onChange={(event) => setForm({ ...form, videoUrl: event.target.value })} placeholder="https://www.youtube.com/watch?v=..." />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="product-image">Foto principal</Label>
-              <Input id="product-image" type="file" accept="image/*" onChange={handleFiles} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="product-additional-images">Fotos adicionales</Label>
-              <Input id="product-additional-images" type="file" accept="image/*" multiple onChange={handleFiles} />
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="product-images">Agregar imágenes</Label>
+              <Input id="product-images" type="file" accept="image/*" multiple onChange={handleFiles} />
             </div>
             <div className="space-y-2 md:col-span-2">
-              <Label>Fotos guardadas</Label>
+              <Label>Imágenes</Label>
               <div className="flex flex-wrap gap-2">
-                {persistedImageUrls.length ? (
-                  persistedImageUrls.map((image, index) => (
-                    <img key={`${image}-${index}`} src={image} alt={`Imagen guardada ${index + 1}`} className="h-16 w-16 object-cover border border-border bg-background" />
-                  ))
+                {persistedImageUrls.length || pendingImagePreviews.length ? (
+                  <>
+                    {persistedImageUrls.map((image, index) => (
+                      <div key={`${image}-${index}`} className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedSavedImageIndex(selectedSavedImageIndex === index ? null : index)}
+                          className="block border border-border bg-background p-0"
+                          aria-label={`Editar imagen guardada ${index + 1}`}
+                        >
+                          <img src={image} alt={`Imagen guardada ${index + 1}`} className="h-16 w-16 object-cover" />
+                        </button>
+
+                        {selectedSavedImageIndex === index ? (
+                          <div className="absolute inset-x-0 bottom-0 z-10 flex gap-1 border border-border bg-background/90 p-1 backdrop-blur-sm">
+                            <button type="button" onClick={() => prioritizePersistedImage(index)} className="flex-1 bg-black px-1 py-0.5 text-[7px] font-medium uppercase tracking-[0.08em] text-white">Principal</button>
+                            <button type="button" onClick={() => removePersistedImage(index)} className="flex-1 border border-border bg-white px-1 py-0.5 text-[7px] font-medium uppercase tracking-[0.08em] text-foreground">Quitar</button>
+                          </div>
+                        ) : null}
+                      </div>
+                    ))}
+
+                    {pendingImagePreviews.map((image, index) => (
+                      <div key={image.id} className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedQueuedImageIndex(selectedQueuedImageIndex === index ? null : index)}
+                          className="block border border-border bg-background p-0"
+                          aria-label={`Editar imagen nueva ${index + 1}`}
+                        >
+                          <img src={image.src} alt={`Imagen nueva ${index + 1}`} className="h-16 w-16 object-cover" />
+                        </button>
+
+                        {selectedQueuedImageIndex === index ? (
+                          <div className="absolute inset-x-0 bottom-0 z-10 flex gap-1 border border-border bg-background/90 p-1 backdrop-blur-sm">
+                            <button type="button" onClick={() => prioritizeQueuedImage(index)} className="flex-1 bg-black px-1 py-0.5 text-[7px] font-medium uppercase tracking-[0.08em] text-white">Principal</button>
+                            <button type="button" onClick={() => removeQueuedFile(index)} className="flex-1 border border-border bg-white px-1 py-0.5 text-[7px] font-medium uppercase tracking-[0.08em] text-foreground">Quitar</button>
+                          </div>
+                        ) : null}
+                      </div>
+                    ))}
+                  </>
                 ) : (
-                  <p className="text-xs text-muted-foreground">No hay fotos guardadas todavía.</p>
+                  <p className="text-xs text-muted-foreground">No hay imágenes todavía.</p>
                 )}
               </div>
-              {selectedFileNames.length ? (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {selectedFileNames.map((fileName, index) => (
-                    <span key={`${fileName}-${index}`} className="inline-flex items-center rounded-none border border-border bg-background px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-                      {fileName}
-                    </span>
-                  ))}
-                </div>
-              ) : null}
             </div>
             <div className="md:col-span-2 flex flex-wrap gap-3">
               <Button type="submit" className="rounded-none" disabled={isSubmitting}>
@@ -560,12 +683,11 @@ const ProductAdmin = () => {
 
       {activeTab === 'add-collection' ? (
         <div className="mb-8 rounded-none border border-border bg-card p-6">
-          <div className="mb-6 flex items-center justify-between gap-3">
+          <div className="mb-6">
             <div>
               <h3 className="text-xl font-medium text-foreground">Añadir colección</h3>
               <p className="mt-1 text-sm text-muted-foreground">Crea una nueva agrupación para organizar tus perfumes.</p>
             </div>
-            <Button type="button" variant="outline" className="rounded-none" onClick={() => setActiveTab('products')}>Volver al catálogo</Button>
           </div>
 
           <form onSubmit={handleCreateCollection} className="grid gap-4 md:grid-cols-2">

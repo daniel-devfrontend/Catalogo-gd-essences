@@ -6,12 +6,43 @@ import { ArrowRight } from 'lucide-react';
 import { Button, Header, Footer, PerfumeCard, PerfumeDetailModal } from '@/components';
 import { getProducts } from '@/lib/dataService';
 import { perfumes as localPerfumes } from '@/data/perfumes.js';
+import { Download } from 'lucide-react';
 
 const HomePage = () => {
   const [perfumes, setPerfumes] = React.useState([]);
   const [selectedPerfume, setSelectedPerfume] = React.useState(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [installPrompt, setInstallPrompt] = React.useState(null);
+  const [showInstallOptions, setShowInstallOptions] = React.useState(false);
+  const [installMessage, setInstallMessage] = React.useState('');
+
+  React.useEffect(() => {
+    const handleInstallAvailable = (event) => {
+      event.preventDefault();
+      setInstallPrompt(event);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleInstallAvailable);
+    return () => window.removeEventListener('beforeinstallprompt', handleInstallAvailable);
+  }, []);
+
+  const handleInstallCatalog = () => {
+    setShowInstallOptions(true);
+  };
+
+  const installCatalog = async () => {
+    if (!installPrompt) {
+      setInstallMessage('La instalación no está disponible en este navegador ahora mismo. Abre el menú del navegador y elige "Instalar aplicación".');
+      return;
+    }
+
+    installPrompt.prompt();
+    await installPrompt.userChoice;
+    setInstallPrompt(null);
+    setShowInstallOptions(false);
+    setInstallMessage('');
+  };
 
   React.useEffect(() => {
     const loadPerfumes = async () => {
@@ -94,6 +125,37 @@ const HomePage = () => {
                     </Link>
                   </Button>
                 </div>
+                <button
+                  type="button"
+                  onClick={handleInstallCatalog}
+                  className="mx-auto mt-5 inline-flex items-center gap-2 border border-white/35 bg-black/20 px-3 py-2 text-[10px] font-medium uppercase tracking-[0.16em] text-white/85 backdrop-blur-sm transition hover:border-white/70 hover:text-white"
+                >
+                  <Download className="h-3.5 w-3.5" aria-hidden="true" />
+                  Instalar catálogo
+                </button>
+                {showInstallOptions ? (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-5" role="dialog" aria-modal="true" aria-label="Instalar catálogo">
+                    <div className="w-full max-w-sm border border-white/20 bg-[#080808] p-6 text-left shadow-2xl">
+                      <div className="mb-5 flex items-center gap-4">
+                        <img src={`${import.meta.env.BASE_URL}Logos/LogoApp2-192.png?v=1`} alt="G&D Essences" className="h-16 w-16 rounded-2xl object-cover" />
+                        <div>
+                          <h2 className="text-lg font-medium text-white">G&D Essences Catálogo</h2>
+                          <p className="mt-1 text-xs text-white/60">Acceso directo a la parte pública</p>
+                        </div>
+                      </div>
+                      <div className="grid gap-3">
+                        <button type="button" onClick={installCatalog} className="flex items-center justify-center border border-white bg-white px-4 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-black transition hover:bg-white/90">
+                          Instalar catálogo
+                        </button>
+                        <Link to="/catalogo" onClick={() => setShowInstallOptions(false)} className="flex items-center justify-center border border-white/30 px-4 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-white transition hover:border-white">
+                          Abrir catálogo
+                        </Link>
+                        <button type="button" onClick={() => setShowInstallOptions(false)} className="py-2 text-xs text-white/50 transition hover:text-white">Cerrar</button>
+                        {installMessage ? <p className="text-center text-[11px] leading-relaxed text-white/55">{installMessage}</p> : null}
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
               </motion.div>
             </div>
           </section>

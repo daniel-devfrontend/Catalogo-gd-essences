@@ -1,5 +1,7 @@
 import { supabase, supabaseEnabled } from '@/lib/supabaseClient';
 
+import { preserveExactText } from '@/lib/textSafety';
+
 const isEnabled = supabaseEnabled;
 const PRODUCT_CACHE_KEY = 'gd-essences-products-cache';
 const COLLECTION_CACHE_KEY = 'gd-essences-collections-cache';
@@ -82,7 +84,14 @@ export const getCollections = async () => {
     const { data, error } = await supabase.from('collections').select('id,title,description').order('title');
     if (error) throw error;
 
-    const result = Array.isArray(data) ? data : [];
+    const result = Array.isArray(data)
+      ? data.map((collection) => ({
+          ...collection,
+          id: preserveExactText(collection?.id),
+          title: preserveExactText(collection?.title),
+          description: preserveExactText(collection?.description),
+        }))
+      : [];
     writeCache(COLLECTION_CACHE_KEY, result);
     return result;
   } catch (error) {
@@ -96,7 +105,14 @@ export const createCollection = async (collection) => {
     throw new Error('Supabase no está configurado.');
   }
 
-  const { error } = await supabase.from('collections').upsert(collection);
+  const payload = {
+    ...collection,
+    id: preserveExactText(collection?.id),
+    title: preserveExactText(collection?.title),
+    description: preserveExactText(collection?.description),
+  };
+
+  const { error } = await supabase.from('collections').upsert(payload);
   if (error) throw error;
   clearCache(COLLECTION_CACHE_KEY);
   return getCollections();
@@ -146,6 +162,12 @@ export const getProducts = async () => {
 
     const result = await purgeExpiredDeletedProducts((data || []).map((product) => ({
       ...product,
+      id: preserveExactText(product?.id),
+      name: preserveExactText(product?.name),
+      description: preserveExactText(product?.description),
+      collection: preserveExactText(product?.collection),
+      image: preserveExactText(product?.image),
+      images: Array.isArray(product?.images) ? product.images.map((image) => preserveExactText(image)) : product?.images ?? [],
       originalPrice: product.original_price ?? product.originalPrice,
       videoUrl: product.video_url || product.videoUrl,
       deletedAt: product.deleted_at ?? product.deletedAt ?? null,
@@ -177,8 +199,12 @@ export const createOrUpdateProduct = async (product) => {
 
   const productWithStatus = {
     ...rest,
+    name: preserveExactText(rest?.name),
+    description: preserveExactText(rest?.description),
+    collection: preserveExactText(rest?.collection),
+    image: preserveExactText(rest?.image),
+    video_url: preserveExactText(video_url || videoUrl || null),
     original_price: originalPrice ?? original_price ?? null,
-    video_url: video_url || videoUrl || null,
     deleted_at: deleted_at ?? deletedAt ?? null,
     status: product.status ?? 'published',
   };

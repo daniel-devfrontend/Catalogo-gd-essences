@@ -6,3 +6,7 @@ import '@/index.css';
 ReactDOM.createRoot(document.getElementById('root')).render(
 	<App />
 );
+
+if ('serviceWorker' in navigator) {
+	navigator.serviceWorker.register(`${import.meta.env.BASE_URL}service-worker.js?v=2`).catch(() => {});
+}
