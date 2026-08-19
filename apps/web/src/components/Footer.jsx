@@ -75,7 +75,7 @@ const Footer = () => {
                 <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="inline-flex w-10 h-10 rounded-full border border-primary-foreground/20 hover:bg-primary-foreground hover:text-primary items-center justify-center transition-all duration-300" aria-label="Contactar por WhatsApp" title="WhatsApp">
                   <MessageCircle className="h-4 w-4" />
                 </a>
-                <a href="https://github.com/daniel-devfrontend/Catalogo-gd-essences" target="_blank" rel="noopener noreferrer" className="inline-flex w-10 h-10 rounded-full border border-primary-foreground/20 hover:bg-primary-foreground hover:text-primary items-center justify-center transition-all duration-300" aria-label="Ver GitHub" title="GitHub">
+                <a href="https://github.com/daniel-devfrontend" target="_blank" rel="noopener noreferrer" className="inline-flex w-10 h-10 rounded-full border border-primary-foreground/20 hover:bg-primary-foreground hover:text-primary items-center justify-center transition-all duration-300" aria-label="Ver perfil de GitHub" title="GitHub">
                   <Github className="h-4 w-4" />
                 </a>
                 <a href="mailto:danimarin.dev@gmail.com" className="inline-flex w-10 h-10 rounded-full border border-primary-foreground/20 hover:bg-primary-foreground hover:text-primary items-center justify-center transition-all duration-300" aria-label="Enviar correo electrónico" title="Correo">
