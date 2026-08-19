@@ -1,4 +1,5 @@
 import React from 'react';
+import { Youtube } from 'lucide-react';
 import { Button, Input, Label, Textarea, Badge } from '@/components/ui';
 import { getProducts, createOrUpdateProduct, uploadProductImage, removeProductImages, addImagesToProduct, getCollections, createCollection, updateCollection, deleteCollection, deleteProduct, deleteProductPermanently, restoreProduct } from '@/lib/dataService';
 import { resolveProductImage } from '@/lib/productImageResolver';
@@ -885,6 +886,15 @@ const ProductAdmin = () => {
                           {extraImageCount > 0 ? (
                             <span className="absolute right-2 top-2 inline-flex items-center justify-center rounded-full border border-white/70 bg-black/35 px-1.5 py-0.5 text-[7px] font-medium text-white backdrop-blur-[1px] sm:text-[8px]">
                               +{extraImageCount}
+                            </span>
+                          ) : null}
+                          {product.video_url || product.videoUrl ? (
+                            <span
+                              className="absolute bottom-2 left-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/75 text-white shadow-sm"
+                              title="Este perfume tiene vídeo"
+                              aria-label="Este perfume tiene vídeo"
+                            >
+                              <Youtube className="h-4 w-4" aria-hidden="true" />
                             </span>
                           ) : null}
                         </div>
