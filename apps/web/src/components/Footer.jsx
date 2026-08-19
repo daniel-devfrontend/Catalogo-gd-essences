@@ -1,7 +1,34 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Instagram } from 'lucide-react';
+import { Instagram, Share2 } from 'lucide-react';
+import { toast } from 'sonner';
 const Footer = () => {
+  const handleShare = async () => {
+    const shareData = {
+      title: 'G&D Essences',
+      text: 'Descubre el catálogo de fragancias de G&D Essences.',
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
+
+      await navigator.clipboard.writeText(shareData.url);
+      toast.success('Enlace copiado', {
+        description: 'Ya puedes compartir el catálogo donde quieras.',
+      });
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        toast.error('No se pudo compartir el catálogo', {
+          description: 'Inténtalo de nuevo en unos segundos.',
+        });
+      }
+    }
+  };
+
   return <footer className="bg-primary text-primary-foreground border-t border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
@@ -30,6 +57,10 @@ const Footer = () => {
                   </svg>
                 </a>
               </div>
+              <button type="button" onClick={handleShare} className="mt-6 inline-flex items-center gap-2 border border-primary-foreground/20 px-4 py-2 text-sm text-primary-foreground transition-all duration-300 hover:bg-primary-foreground hover:text-primary" aria-label="Compartir catálogo">
+                <Share2 className="h-4 w-4" aria-hidden="true" />
+                Compartir catálogo
+              </button>
             </div>
           </div>
         </div>
