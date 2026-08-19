@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Youtube } from 'lucide-react';
 import { Badge } from '@/components/ui';
 import { resolveProductImage } from '@/lib/productImageResolver';
 
@@ -21,6 +22,7 @@ const PerfumeCard = ({ perfume, onClick }) => {
 
   const primaryImage = resolveProductImage(perfume);
   const imageSrc = primaryImage ? resolveImageSrc(primaryImage) : '';
+  const videoUrl = perfume.video_url || perfume.videoUrl;
 
   return (
     <motion.div
@@ -55,6 +57,15 @@ const PerfumeCard = ({ perfume, onClick }) => {
               {perfume.collection}
             </Badge>
           </div>
+          {videoUrl ? (
+            <span
+              className="absolute bottom-3 left-3 flex h-7 w-7 items-center justify-center rounded-full bg-black/75 text-white shadow-sm"
+              title="Este perfume tiene vídeo"
+              aria-label="Este perfume tiene vídeo"
+            >
+              <Youtube className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+            </span>
+          ) : null}
         </div>
         <div className="p-6 flex flex-col flex-grow">
           <h3 className="text-xl font-medium leading-tight mb-2 font-perfume-title">

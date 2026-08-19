@@ -800,11 +800,12 @@ const ProductAdmin = () => {
 
           {activeTab === 'products' ? (
             <>
-              <div className="flex flex-wrap gap-2">
+              <div className="max-w-full overflow-x-auto overscroll-x-contain rounded-none border border-border/60 bg-muted/10 px-2 py-2 [scrollbar-width:auto]">
+                <div className="flex w-max min-w-full flex-nowrap gap-2">
                 <Button
                   type="button"
                   variant={collectionFilter === 'all' ? 'default' : 'outline'}
-                  className="rounded-none"
+                  className="shrink-0 rounded-none"
                   onClick={() => setCollectionFilter('all')}
                 >
                   Todas
@@ -814,12 +815,13 @@ const ProductAdmin = () => {
                     key={collection.id}
                     type="button"
                     variant={collectionFilter === collection.id ? 'default' : 'outline'}
-                    className="rounded-none"
+                    className="shrink-0 rounded-none"
                     onClick={() => setCollectionFilter(collection.id)}
                   >
                     {collection.title}
                   </Button>
                 ))}
+                </div>
               </div>
 
               {isLoading ? (
