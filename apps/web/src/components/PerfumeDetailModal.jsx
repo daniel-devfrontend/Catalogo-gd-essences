@@ -1,12 +1,16 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Badge, Button } from '@/components/ui';
-import { Link } from 'react-router-dom';
+import { Check, MessageCircle, Phone } from 'lucide-react';
+import { useSelection } from '@/context/SelectionContext';
 import { resolveProductImage, isRealProductImage } from '@/lib/productImageResolver';
 
 const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
   const safePerfume = perfume || {};
   const productName = safePerfume.name || 'G&D Essences';
   const productPrice = Number(safePerfume.price ?? 0);
+  const whatsappMessage = encodeURIComponent(`Hola, me interesa el perfume ${productName} ($${Number.isFinite(productPrice) ? productPrice.toFixed(2) : '0.00'}). ¿Podrían darme más información?`);
+  const whatsappUrl = `https://wa.me/584246436776?text=${whatsappMessage}`;
+  const { isSelected, toggleProduct } = useSelection();
 
   const resolveImageSrc = (image) => {
     if (!image) return '';
@@ -183,15 +187,32 @@ const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
 
           <div className="p-8 md:p-12 flex flex-col justify-center">
             <DialogHeader className="mb-8 text-left">
-              <Badge variant="outline" className="w-fit mb-4 rounded-none text-xs tracking-widest uppercase border-border text-muted-foreground">
-                {perfume.collection}
-              </Badge>
+              <div className="mb-4 flex items-center justify-between gap-4">
+                <Badge variant="outline" className="w-fit rounded-none text-xs tracking-widest uppercase border-border text-muted-foreground">
+                  {perfume.collection}
+                </Badge>
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Consultar por WhatsApp"
+                  aria-label={`Consultar ${productName} por WhatsApp`}
+                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-black text-white shadow-sm transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+                >
+                  <span className="relative flex h-6 w-6 items-center justify-center" aria-hidden="true">
+                    <MessageCircle className="h-6 w-6" strokeWidth={1.7} />
+                    <Phone className="absolute h-3 w-3 -rotate-12" strokeWidth={2} />
+                  </span>
+                </a>
+              </div>
               <DialogTitle id="perfume-dialog-title" className="text-3xl md:text-4xl font-medium mb-2" style={{ fontFamily: 'Playfair Display, serif' }}>
                 {productName}
               </DialogTitle>
-              <DialogDescription id="perfume-dialog-description" className="text-2xl text-foreground mt-4" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                ${Number.isFinite(productPrice) ? productPrice.toFixed(2) : '0.00'}
-              </DialogDescription>
+              <div className="mt-4 flex items-center justify-between gap-4">
+                <DialogDescription id="perfume-dialog-description" className="text-2xl text-foreground" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                  ${Number.isFinite(productPrice) ? productPrice.toFixed(2) : '0.00'}
+                </DialogDescription>
+              </div>
             </DialogHeader>
 
             <div className="mb-10">
@@ -207,15 +228,16 @@ const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
 
             <div className="mt-auto flex flex-col gap-4">
               <Button
-                asChild
                 variant="default"
                 className="w-full rounded-none h-14 text-sm tracking-widest uppercase font-medium transition-all duration-300"
+                onClick={() => toggleProduct(safePerfume)}
               >
-                <Link to="/contacto">Contactar por este perfume</Link>
+                {isSelected(perfume.id) ? <Check className="mr-2 h-4 w-4" aria-hidden="true" /> : null}
+                {isSelected(perfume.id) ? 'Añadido a mi selección' : 'Añadir a mi selección'}
               </Button>
-              <Button 
-                variant="outline" 
-                className="w-full rounded-none border-border text-foreground hover:bg-muted h-14 text-sm tracking-widest uppercase font-medium transition-all duration-300" 
+              <Button
+                variant="outline"
+                className="w-full rounded-none border-border text-foreground hover:bg-muted h-12 text-sm tracking-widest uppercase font-medium transition-all duration-300"
                 onClick={onClose}
               >
                 Volver

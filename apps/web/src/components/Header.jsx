@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu } from 'lucide-react';
+import { BookOpen, House, Layers3, Mail, Menu } from 'lucide-react';
 import { Button, Sheet, SheetContent, SheetTrigger } from '@/components/ui';
 
 const Header = () => {
@@ -9,10 +9,10 @@ const Header = () => {
   const isHome = location.pathname === '/';
 
   const navItems = [
-    { name: 'Home', path: '/' },
-    { name: 'Catálogo', path: '/catalogo' },
-    { name: 'Colecciones', path: '/colecciones' },
-    { name: 'Contacto', path: '/contacto' }
+    { name: 'Home', path: '/', icon: House },
+    { name: 'Catálogo', path: '/catalogo', icon: BookOpen },
+    { name: 'Colecciones', path: '/colecciones', icon: Layers3 },
+    { name: 'Contacto', path: '/contacto', icon: Mail }
   ];
 
   const isActive = (path) => {
@@ -42,24 +42,28 @@ const Header = () => {
             <img
               src={`${import.meta.env.BASE_URL}Logos/LogoWhite2-transparent.png`}
               alt="G&D Essences"
-              className="h-12 w-auto object-contain sm:hidden"
+              className="h-[3.3rem] w-auto object-contain sm:hidden"
             />
           </Link>
 
           <nav className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`text-sm font-medium tracking-wide uppercase transition-colors duration-200 ${
-                  isActive(item.path)
-                    ? 'text-foreground border-b-2 border-foreground pb-1'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {item.name}
-              </Link>
-            ))}
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`inline-flex items-center gap-2 text-sm font-medium tracking-wide uppercase transition-colors duration-200 ${
+                    isActive(item.path)
+                      ? 'text-foreground border-b-2 border-foreground pb-1'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                  {item.name}
+                </Link>
+              );
+            })}
           </nav>
 
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -70,20 +74,24 @@ const Header = () => {
             </SheetTrigger>
             <SheetContent side="right" className="w-[300px] sm:w-[400px] bg-background border-l border-border">
               <nav className="flex flex-col space-y-6 mt-12">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => setIsOpen(false)}
-                    className={`text-lg font-medium tracking-wide uppercase transition-colors duration-200 ${
-                      isActive(item.path)
-                        ? 'text-foreground'
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setIsOpen(false)}
+                      className={`flex items-center gap-3 text-lg font-medium tracking-wide uppercase transition-colors duration-200 ${
+                        isActive(item.path)
+                          ? 'text-foreground'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <Icon className="h-5 w-5" aria-hidden="true" />
+                      {item.name}
+                    </Link>
+                  );
+                })}
               </nav>
             </SheetContent>
           </Sheet>

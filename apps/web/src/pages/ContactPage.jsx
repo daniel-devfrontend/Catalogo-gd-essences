@@ -9,7 +9,7 @@ function ContactPage() {
       name: 'Instagram',
       icon: Instagram,
       url: 'https://www.instagram.com/gydessences?igsh=Z2pxd3k5Z2tncnl4',
-      handle: '@gd_essences',
+      handle: '@GYDESSENCES',
       description: 'Descubre nuestras últimas novedades y estética visual.'
     }, {
       name: 'TikTok',

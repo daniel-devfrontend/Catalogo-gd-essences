@@ -1,5 +1,6 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet';
 import { Header, Footer, PerfumeCard, PerfumeDetailModal } from '@/components';
 import { getCatalogData } from '@/lib/catalogData';
 
@@ -7,19 +8,22 @@ const CollectionDetailPage = () => {
   const { id } = useParams();
   const [perfumes, setPerfumes] = React.useState([]);
   const [collections, setCollections] = React.useState([]);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
     const loadData = async () => {
       const { products, collections } = await getCatalogData();
       setPerfumes(products.filter((product) => product.status !== 'draft'));
       setCollections(collections);
+      setIsLoading(false);
     };
 
     loadData();
   }, []);
 
-  const collection = collections.find((c) => c.id === id);
-  const perfumesInCollection = perfumes.filter((p) => p.collection === id);
+  const normalizedId = decodeURIComponent(id || '');
+  const collection = collections.find((item) => String(item.id) === normalizedId);
+  const perfumesInCollection = perfumes.filter((product) => String(product.collection) === normalizedId);
 
   const [selectedPerfume, setSelectedPerfume] = React.useState(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -28,6 +32,18 @@ const CollectionDetailPage = () => {
     setSelectedPerfume(perfume);
     setIsModalOpen(true);
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <main className="flex-1 flex items-center justify-center text-sm uppercase tracking-widest text-muted-foreground">
+          Cargando colección...
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (!collection) {
     return (

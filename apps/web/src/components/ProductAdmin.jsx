@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button, Input, Label, Textarea, Badge } from '@/components/ui';
-import { getProducts, createOrUpdateProduct, uploadProductImage, addImagesToProduct, getCollections, createCollection, deleteCollection, deleteProduct, deleteProductPermanently, restoreProduct } from '@/lib/dataService';
+import { getProducts, createOrUpdateProduct, uploadProductImage, removeProductImages, addImagesToProduct, getCollections, createCollection, updateCollection, deleteCollection, deleteProduct, deleteProductPermanently, restoreProduct } from '@/lib/dataService';
 import { resolveProductImage } from '@/lib/productImageResolver';
 import PerfumeDetailModal from './PerfumeDetailModal';
 
@@ -166,13 +166,14 @@ const ProductAdmin = () => {
       const currentProduct = editingProductId
         ? products.find((product) => product.id === editingProductId)
         : null;
-      const existingImages = persistedImageUrls.length
+      const previousImages = Array.isArray(currentProduct?.images)
+        ? [...currentProduct.images]
+        : currentProduct?.image
+          ? [currentProduct.image]
+          : [];
+      const existingImages = editingProductId
         ? [...persistedImageUrls]
-        : Array.isArray(currentProduct?.images)
-          ? [...currentProduct.images]
-          : currentProduct?.image
-            ? [currentProduct.image]
-            : [];
+        : previousImages;
 
       let imageUrls = [];
 
@@ -198,6 +199,10 @@ const ProductAdmin = () => {
       };
 
       await createOrUpdateProduct(newProduct);
+      if (editingProductId) {
+        const removedImages = previousImages.filter((image) => !realImages.includes(image));
+        if (removedImages.length) await removeProductImages(removedImages);
+      }
       setForm(emptyForm);
       setPendingFiles([]);
       setPendingImagePreviews([]);
@@ -423,6 +428,7 @@ const ProductAdmin = () => {
       description: collection.description || '',
     });
     setEditingCollectionId(collection.id);
+    setActiveTab('add-collection');
     setMessage('');
   };
 
@@ -447,7 +453,11 @@ const ProductAdmin = () => {
         description: collectionForm.description.trim(),
       };
 
-      await createCollection(newCollection);
+      if (editingCollectionId) {
+        await updateCollection(editingCollectionId, newCollection);
+      } else {
+        await createCollection(newCollection);
+      }
       const updatedCollections = await getCollections();
       setCollections(updatedCollections);
       setCollectionForm({ title: '', description: '' });
@@ -455,7 +465,8 @@ const ProductAdmin = () => {
       setMessage(editingCollectionId ? 'Colección actualizada correctamente.' : 'Colección creada correctamente.');
     } catch (error) {
       console.error(error);
-      setMessage('No se pudo crear la colección.');
+      const detail = error?.message || error?.details || error?.hint || 'Error desconocido.';
+      setMessage(`No se pudo ${editingCollectionId ? 'actualizar' : 'crear'} la colección: ${detail}`);
     }
   };
 

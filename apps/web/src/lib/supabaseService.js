@@ -115,6 +115,25 @@ export const createCollection = async (collection) => {
   return getCollections();
 };
 
+export const updateCollection = async (collectionId, collection) => {
+  if (!isEnabled || !supabase) {
+    throw new Error('Supabase no está configurado.');
+  }
+
+  const payload = {
+    title: preserveExactText(collection?.title),
+    description: preserveExactText(collection?.description),
+  };
+
+  const { error } = await supabase
+    .from('collections')
+    .update(payload)
+    .eq('id', collectionId);
+  if (error) throw error;
+  clearCache(COLLECTION_CACHE_KEY);
+  return getCollections();
+};
+
 export const deleteCollection = async (collectionId) => {
   if (!isEnabled || !supabase) {
     throw new Error('Supabase no está configurado.');
@@ -241,6 +260,24 @@ export const uploadProductImage = async (file) => {
   const { data } = supabase.storage.from('product-images').getPublicUrl(filePath);
   if (!data?.publicUrl) throw new Error('No se pudo obtener la URL pública de la imagen.');
   return data.publicUrl;
+};
+
+export const removeProductImages = async (imageUrls) => {
+  if (!isEnabled || !supabase || !Array.isArray(imageUrls) || !imageUrls.length) return;
+
+  const paths = imageUrls
+    .filter((imageUrl) => typeof imageUrl === 'string')
+    .map((imageUrl) => {
+      const marker = '/storage/v1/object/public/product-images/';
+      const markerIndex = imageUrl.indexOf(marker);
+      return markerIndex === -1 ? null : decodeURIComponent(imageUrl.slice(markerIndex + marker.length));
+    })
+    .filter(Boolean);
+
+  if (!paths.length) return;
+
+  const { error } = await supabase.storage.from('product-images').remove(paths);
+  if (error) throw error;
 };
 
 export const addImagesToProduct = async (productId, imageUrls) => {
