@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gd-essences-catalog-v5';
+const CACHE_NAME = 'gd-essences-catalog-v6';
 
 self.addEventListener('install', () => {
   self.skipWaiting();
