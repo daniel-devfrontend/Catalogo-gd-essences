@@ -79,22 +79,6 @@ const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
     setActiveImage(0);
   }, [perfume?.id]);
 
-  const handlePointerDown = (event) => {
-    touchStartXRef.current = event.clientX;
-  };
-
-  const handlePointerUp = (event) => {
-    if (touchStartXRef.current === null) return;
-    const deltaX = event.clientX - touchStartXRef.current;
-    const threshold = 48;
-    if (deltaX > threshold) {
-      setActiveImage((prev) => (prev - 1 + galleryItems.length) % galleryItems.length);
-    } else if (deltaX < -threshold) {
-      setActiveImage((prev) => (prev + 1) % galleryItems.length);
-    }
-    touchStartXRef.current = null;
-  };
-
   const galleryItems = React.useMemo(() => {
     const images = Array.isArray(safePerfume.images)
       ? safePerfume.images.filter(isRealProductImage)
@@ -133,15 +117,17 @@ const PerfumeDetailModal = ({ perfume, isOpen, onClose }) => {
         aria-describedby="perfume-dialog-description"
       >
         <div className="grid md:grid-cols-2 h-full">
-          <div className="aspect-square md:aspect-auto md:h-full bg-muted relative">
+          <div
+            className="aspect-square md:aspect-auto md:h-full bg-muted relative touch-pan-y"
+            onTouchStart={handleSwipeStart}
+            onTouchEnd={handleSwipeEnd}
+            onTouchCancel={() => {
+              touchStartXRef.current = null;
+              touchEndXRef.current = null;
+            }}
+          >
             {activeItem && activeItem.type === 'video' && activeItem.embedUrl ? (
-              <div
-                className="relative h-full w-full bg-black"
-                onTouchStart={handleSwipeStart}
-                onTouchEnd={handleSwipeEnd}
-                onPointerDown={handleSwipeStart}
-                onPointerUp={handleSwipeEnd}
-              >
+              <div className="relative h-full w-full bg-black">
                 <iframe
                   src={activeItem.embedUrl}
                   title={`${productName} video`}

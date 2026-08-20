@@ -31,6 +31,7 @@ export default [
       react: {
         version: 'detect',
       },
+      'import/core-modules': ['node:test', 'node:assert/strict'],
       'import/resolver': {
         alias: {
           map: [['@', './src']],

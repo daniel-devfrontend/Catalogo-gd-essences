@@ -244,20 +244,22 @@ const ProductAdmin = () => {
     }
   };
 
-  const handleFiles = async (event) => {
+  const handleFiles = (event) => {
     const files = Array.from(event.target.files || []);
     if (!files.length) return;
 
-    const previews = await Promise.all(files.map((file) => new Promise((resolve, reject) => {
+    const previews = Promise.all(files.map((file) => new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve({ id: `${file.name}-${Date.now()}-${Math.random()}`, name: file.name, src: reader.result, file });
       reader.onerror = () => reject(new Error('No se pudo leer la imagen seleccionada.'));
       reader.readAsDataURL(file);
     })));
 
-    setPendingFiles((previous) => [...previous, ...files]);
-    setPendingImagePreviews((previous) => [...previous, ...previews]);
-    setSelectedFileNames((previous) => [...previous, ...files.map((file) => file.name)]);
+    previews.then((nextPreviews) => {
+      setPendingFiles((previous) => [...previous, ...files]);
+      setPendingImagePreviews((previous) => [...previous, ...nextPreviews]);
+      setSelectedFileNames((previous) => [...previous, ...files.map((file) => file.name)]);
+    });
   };
 
   const removeQueuedFile = (indexToRemove) => {
@@ -437,6 +439,14 @@ const ProductAdmin = () => {
     setEditingCollectionId(collection.id);
     setActiveTab('collection-editor');
     setMessage('');
+
+    setTimeout(() => {
+      const formElement = document.getElementById('collection-form-top');
+      if (formElement) {
+        const top = formElement.getBoundingClientRect().top + window.scrollY - 120;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+      }
+    }, 50);
   };
 
   const cancelCollectionEdit = () => {
@@ -730,7 +740,7 @@ const ProductAdmin = () => {
             </div>
           </div>
 
-          <form onSubmit={handleCreateCollection} className="grid gap-4 md:grid-cols-2">
+          <form id="collection-form-top" onSubmit={handleCreateCollection} className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="collection-title">Nombre</Label>
               <Input id="collection-title" value={collectionForm.title} onChange={(event) => setCollectionForm({ ...collectionForm, title: event.target.value })} />

@@ -1,13 +1,15 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import { motion } from 'framer-motion';
-import { Header, Footer, CollectionCard } from '@/components';
+import { Search } from 'lucide-react';
+import { Header, Footer, CollectionCard, Input } from '@/components';
 import { getCatalogData } from '@/lib/catalogData';
 
 const CollectionsPage = () => {
   const [perfumes, setPerfumes] = React.useState([]);
   const [collections, setCollections] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [searchQuery, setSearchQuery] = React.useState('');
 
   const collectionsWithImages = React.useMemo(() => {
     return collections.map((collection) => ({
@@ -16,10 +18,21 @@ const CollectionsPage = () => {
     }));
   }, [collections, perfumes]);
 
-  const featuredCollection = collectionsWithImages.find((collection) => collection.id === 'carolina-herrera') || collectionsWithImages[0];
-  const secondaryCollections = collectionsWithImages.filter((collection) => collection.id !== featuredCollection?.id);
+  const filteredCollections = React.useMemo(() => {
+    const query = searchQuery.trim().toLocaleLowerCase();
+    if (!query) return collectionsWithImages;
+
+    return collectionsWithImages.filter((collection) => (
+      `${collection.title} ${collection.description || ''}`.toLocaleLowerCase().includes(query)
+    ));
+  }, [collectionsWithImages, searchQuery]);
+
+  const featuredCollection = filteredCollections.find((collection) => collection.id === 'carolina-herrera') || filteredCollections[0];
+  const secondaryCollections = filteredCollections.filter((collection) => collection.id !== featuredCollection?.id);
 
   React.useEffect(() => {
+    import('./CollectionDetailPage.jsx');
+
     const loadData = async () => {
       setIsLoading(true);
       try {
@@ -63,8 +76,20 @@ const CollectionsPage = () => {
               </p>
             </motion.div>
 
-            <div className="mb-6 text-xs font-medium uppercase tracking-widest text-muted-foreground">
-              {isLoading ? 'Cargando...' : `${collections.length} Colecciones`}
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+                {isLoading ? 'Cargando...' : `${filteredCollections.length} Colecciones`}
+              </div>
+              <div id="collection-search" className="relative w-full sm:max-w-sm">
+                <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+                <Input
+                  placeholder="Buscar colección..."
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  className="h-11 rounded-none border-border pl-11 focus-visible:ring-1 focus-visible:ring-foreground"
+                  aria-label="Buscar colección"
+                />
+              </div>
             </div>
 
             {isLoading ? (
@@ -75,7 +100,8 @@ const CollectionsPage = () => {
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+              filteredCollections.length ? (
+                <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 {featuredCollection && (
                   <div className="col-span-2 lg:col-span-2">
                     <CollectionCard
@@ -94,7 +120,12 @@ const CollectionsPage = () => {
                     />
                   );
                 })}
-              </div>
+                </div>
+              ) : (
+                <div className="border border-border p-10 text-center text-sm text-muted-foreground">
+                  No encontramos colecciones con esa búsqueda.
+                </div>
+              )
             )}
           </div>
         </main>

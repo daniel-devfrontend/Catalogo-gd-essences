@@ -1,11 +1,13 @@
 import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
+import { ArrowLeft } from 'lucide-react';
 import { Header, Footer, PerfumeCard, PerfumeDetailModal } from '@/components';
 import { getCatalogData } from '@/lib/catalogData';
 
 const CollectionDetailPage = () => {
   const { id } = useParams();
+  const location = useLocation();
   const [perfumes, setPerfumes] = React.useState([]);
   const [collections, setCollections] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -23,6 +25,7 @@ const CollectionDetailPage = () => {
 
   const normalizedId = decodeURIComponent(id || '');
   const collection = collections.find((item) => String(item.id) === normalizedId);
+  const collectionImage = location.state?.collectionImage || '';
   const perfumesInCollection = perfumes.filter((product) => String(product.collection) === normalizedId);
 
   const [selectedPerfume, setSelectedPerfume] = React.useState(null);
@@ -67,12 +70,37 @@ const CollectionDetailPage = () => {
       <Header />
       <main className="flex-1 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl md:text-5xl font-medium mb-6 text-foreground" style={{ fontFamily: 'Playfair Display, serif' }}>
-            {collection.title}
-          </h1>
-          <p className="text-lg text-muted-foreground leading-relaxed mb-10 max-w-2xl font-light">
-            {collection.description}
-          </p>
+          <div className="relative mb-10 min-h-[220px] overflow-hidden border border-border bg-muted md:min-h-[300px]">
+            {collectionImage ? (
+              <img
+                src={collectionImage}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : null}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+            <Link
+              to="/colecciones"
+              className="absolute left-5 top-5 z-10 inline-flex items-center gap-2 border border-white/35 bg-black/35 px-3 py-2 text-xs font-medium uppercase tracking-[0.14em] text-white backdrop-blur-sm transition-colors hover:border-white hover:bg-black/55"
+              aria-label="Volver a colecciones"
+            >
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              Volver
+            </Link>
+            <div className="relative flex min-h-[220px] flex-col justify-end p-6 text-white md:min-h-[300px] md:p-10">
+              <h1
+                className="text-4xl font-medium md:text-5xl"
+                style={{ fontFamily: 'Playfair Display, serif' }}
+              >
+                {collection.title}
+              </h1>
+              <p
+                className="mt-3 max-w-2xl text-lg leading-relaxed text-white/80"
+              >
+                {collection.description}
+              </p>
+            </div>
+          </div>
           {perfumesInCollection.length > 0 ? (
             <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
               {perfumesInCollection.map((perfume) => (
