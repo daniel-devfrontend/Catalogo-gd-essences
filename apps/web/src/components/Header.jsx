@@ -1,14 +1,12 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, House, Layers3, Mail, Menu, Search } from 'lucide-react';
+import { BookOpen, House, Layers3, Mail, Menu } from 'lucide-react';
 import { Button, Sheet, SheetContent, SheetTrigger } from '@/components/ui';
 
 const Header = () => {
   const location = useLocation();
   const [isOpen, setIsOpen] = React.useState(false);
   const isHome = location.pathname === '/';
-  const isAdmin = location.pathname === '/admin' || location.pathname.endsWith('/admin/');
-  const hasFixedSearch = location.pathname === '/catalogo' || location.pathname === '/colecciones';
 
   const navItems = [
     { name: 'Home', path: '/', icon: House },
@@ -66,16 +64,6 @@ const Header = () => {
                 </Link>
               );
             })}
-            {!hasFixedSearch && !isAdmin ? (
-              <Link
-                to="/catalogo#catalog-search"
-                className="text-muted-foreground transition-colors duration-200 hover:text-foreground"
-                aria-label="Buscar en el catálogo"
-                title="Buscar en el catálogo"
-              >
-                <Search className="h-5 w-5" aria-hidden="true" />
-              </Link>
-            ) : null}
           </nav>
 
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -104,16 +92,6 @@ const Header = () => {
                     </Link>
                   );
                 })}
-                {!hasFixedSearch && !isAdmin ? (
-                  <Link
-                    to="/catalogo#catalog-search"
-                    onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-3 text-lg font-medium tracking-wide uppercase text-muted-foreground transition-colors duration-200 hover:text-foreground"
-                  >
-                    <Search className="h-5 w-5" aria-hidden="true" />
-                    Buscar
-                  </Link>
-                ) : null}
               </nav>
             </SheetContent>
           </Sheet>
