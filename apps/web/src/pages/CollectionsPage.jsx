@@ -9,6 +9,16 @@ const CollectionsPage = () => {
   const [collections, setCollections] = React.useState([]);
   const [isLoading, setIsLoading] = React.useState(true);
 
+  const collectionsWithImages = React.useMemo(() => {
+    return collections.map((collection) => ({
+      ...collection,
+      image: perfumes.find((perfume) => perfume.collection === collection.id && perfume.image)?.image || '',
+    }));
+  }, [collections, perfumes]);
+
+  const featuredCollection = collectionsWithImages.find((collection) => collection.id === 'carolina-herrera') || collectionsWithImages[0];
+  const secondaryCollections = collectionsWithImages.filter((collection) => collection.id !== featuredCollection?.id);
+
   React.useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
@@ -43,7 +53,7 @@ const CollectionsPage = () => {
               className="mb-20 text-center"
             >
               <h1
-                className="text-4xl md:text-5xl font-medium mb-6 text-foreground"
+                className="text-4xl md:text-6xl font-medium mb-6 text-foreground"
                 style={{ fontFamily: 'Playfair Display, serif', textBalance: 'balance' }}
               >
                 Casas de Perfumería
@@ -58,30 +68,29 @@ const CollectionsPage = () => {
             </div>
 
             {isLoading ? (
-              <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
-                {Array.from({ length: 8 }).map((_, index) => (
-                  <div key={`collection-skeleton-${index}`} className="animate-pulse border border-border bg-card p-8">
-                    <div className="mb-6 flex items-start justify-between">
-                      <div className="h-7 w-3/4 bg-muted" />
-                      <div className="h-5 w-5 bg-muted" />
-                    </div>
-                    <div className="mb-2 h-3 w-full bg-muted" />
-                    <div className="mb-8 h-3 w-5/6 bg-muted" />
-                    <div className="border-t border-border/50 pt-4">
-                      <div className="h-3 w-1/2 bg-muted" />
-                    </div>
-                  </div>
+              <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                <div className="col-span-2 h-[360px] animate-pulse bg-muted lg:col-span-2" />
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <div key={`collection-skeleton-${index}`} className="h-[230px] animate-pulse bg-muted" />
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
-                {collections.map((collection, index) => {
+              <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                {featuredCollection && (
+                  <div className="col-span-2 lg:col-span-2">
+                    <CollectionCard
+                      collection={{ ...featuredCollection, count: perfumes.filter((perfume) => perfume.collection === featuredCollection.id).length }}
+                      index={0}
+                    />
+                  </div>
+                )}
+                {secondaryCollections.map((collection, index) => {
                   const count = perfumes.filter(p => p.collection === collection.id).length;
                   return (
                     <CollectionCard
                       key={collection.id}
                       collection={{ ...collection, count }}
-                      index={index}
+                      index={index + 1}
                     />
                   );
                 })}

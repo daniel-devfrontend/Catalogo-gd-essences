@@ -20,13 +20,16 @@ const emptyForm = {
 const emptyCollectionForm = {
   title: '',
   description: '',
+  image: '',
 };
 
 const ProductAdmin = () => {
   const [products, setProducts] = React.useState([]);
   const [collections, setCollections] = React.useState([]);
   const [form, setForm] = React.useState(emptyForm);
-  const [collectionForm, setCollectionForm] = React.useState({ title: '', description: '' });
+  const [collectionForm, setCollectionForm] = React.useState(emptyCollectionForm);
+  const [collectionImageFile, setCollectionImageFile] = React.useState(null);
+  const [collectionImagePreview, setCollectionImagePreview] = React.useState('');
   const [pendingFiles, setPendingFiles] = React.useState([]);
   const [pendingImagePreviews, setPendingImagePreviews] = React.useState([]);
   const [persistedImageUrls, setPersistedImageUrls] = React.useState([]);
@@ -427,15 +430,33 @@ const ProductAdmin = () => {
     setCollectionForm({
       title: collection.title || '',
       description: collection.description || '',
+      image: collection.image || '',
     });
+    setCollectionImageFile(null);
+    setCollectionImagePreview(collection.image || '');
     setEditingCollectionId(collection.id);
-    setActiveTab('add-collection');
+    setActiveTab('collection-editor');
     setMessage('');
   };
 
   const cancelCollectionEdit = () => {
     setEditingCollectionId(null);
-    setCollectionForm({ title: '', description: '' });
+    setCollectionForm(emptyCollectionForm);
+    setCollectionImageFile(null);
+    setCollectionImagePreview('');
+    setActiveTab('collections');
+  };
+
+  const handleCollectionImage = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCollectionImageFile(file);
+      setCollectionImagePreview(reader.result);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleCreateCollection = async (event) => {
@@ -448,10 +469,14 @@ const ProductAdmin = () => {
     }
 
     try {
+      const imageUrl = collectionImageFile
+        ? await uploadProductImage(collectionImageFile)
+        : collectionForm.image;
       const newCollection = {
         id: editingCollectionId || collectionForm.title.toLowerCase().replace(/\s+/g, '-'),
         title: collectionForm.title.trim(),
         description: collectionForm.description.trim(),
+        image: imageUrl || '',
       };
 
       if (editingCollectionId) {
@@ -461,8 +486,11 @@ const ProductAdmin = () => {
       }
       const updatedCollections = await getCollections();
       setCollections(updatedCollections);
-      setCollectionForm({ title: '', description: '' });
+      setCollectionForm(emptyCollectionForm);
+      setCollectionImageFile(null);
+      setCollectionImagePreview('');
       setEditingCollectionId(null);
+      setActiveTab('collections');
       setMessage(editingCollectionId ? 'Colección actualizada correctamente.' : 'Colección creada correctamente.');
     } catch (error) {
       console.error(error);
@@ -533,7 +561,7 @@ const ProductAdmin = () => {
           </h2>
         </div>
 
-        {!editingProductId ? (
+        {!editingProductId && activeTab !== 'collection-editor' ? (
           <div className="flex flex-wrap gap-2">
             {[
               { id: 'products', label: 'Productos' },
@@ -693,12 +721,12 @@ const ProductAdmin = () => {
         </div>
       ) : null}
 
-      {activeTab === 'add-collection' ? (
+      {(activeTab === 'add-collection' || activeTab === 'collection-editor') ? (
         <div className="mb-8 rounded-none border border-border bg-card p-6">
           <div className="mb-6">
             <div>
-              <h3 className="text-xl font-medium text-foreground">Añadir colección</h3>
-              <p className="mt-1 text-sm text-muted-foreground">Crea una nueva agrupación para organizar tus perfumes.</p>
+              <h3 className="text-xl font-medium text-foreground">{editingCollectionId ? 'Editor de colección' : 'Añadir colección'}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{editingCollectionId ? 'Actualiza los datos y la imagen de portada de esta colección.' : 'Crea una nueva agrupación para organizar tus perfumes.'}</p>
             </div>
           </div>
 
@@ -711,9 +739,27 @@ const ProductAdmin = () => {
               <Label htmlFor="collection-description">Descripción</Label>
               <Textarea id="collection-description" value={collectionForm.description} onChange={(event) => setCollectionForm({ ...collectionForm, description: event.target.value })} />
             </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="collection-image">Imagen de portada</Label>
+              <Input
+                id="collection-image"
+                type="file"
+                accept="image/*"
+                onChange={handleCollectionImage}
+              />
+              {collectionImagePreview ? (
+                <img
+                  src={collectionImagePreview.startsWith('data:') || collectionImagePreview.startsWith('http') ? collectionImagePreview : `${import.meta.env.BASE_URL}${collectionImagePreview.replace(/^\/+/, '')}`}
+                  alt="Vista previa de la portada"
+                  className="mt-3 h-40 w-full max-w-xs object-cover"
+                />
+              ) : (
+                <p className="text-xs text-muted-foreground">Selecciona una imagen para usarla como portada de esta colección.</p>
+              )}
+            </div>
             <div className="md:col-span-2 flex flex-wrap gap-3">
               <Button type="submit" variant="outline" className="rounded-none">{editingCollectionId ? 'Guardar cambios' : 'Crear colección'}</Button>
-              {editingCollectionId ? <Button type="button" variant="outline" className="rounded-none" onClick={cancelCollectionEdit}>Cancelar</Button> : null}
+              {editingCollectionId ? <Button type="button" variant="outline" className="rounded-none" onClick={cancelCollectionEdit}>Volver a colecciones</Button> : null}
             </div>
           </form>
         </div>
@@ -959,8 +1005,23 @@ const ProductAdmin = () => {
                     .filter(Boolean)
                     .some((value) => value.toString().toLowerCase().includes(query));
                 })
-                .map((collection) => (
+                .map((collection) => {
+                  const previewImage = collection.image || products.find((product) => product.collection === collection.id && product.image)?.image;
+                  const previewImageSrc = previewImage
+                    ? previewImage.startsWith('http')
+                      ? previewImage
+                      : `${import.meta.env.BASE_URL}${previewImage.replace(/^\/+/, '')}`
+                    : '';
+
+                  return (
                   <div key={collection.id} className="border border-border bg-card p-4">
+                    {previewImageSrc ? (
+                      <img src={previewImageSrc} alt={`Portada de ${collection.title}`} className="mb-4 h-36 w-full object-cover" />
+                    ) : (
+                      <div className="mb-4 flex h-36 items-center justify-center bg-muted text-xs uppercase tracking-widest text-muted-foreground">
+                        Sin imagen
+                      </div>
+                    )}
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Colección</p>
@@ -976,7 +1037,8 @@ const ProductAdmin = () => {
                       </Button>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
             </div>
           ) : null}
         </div>

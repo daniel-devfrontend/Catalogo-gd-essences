@@ -78,7 +78,16 @@ export const getCollections = async () => {
   }
 
   try {
-    const { data, error } = await supabase.from('collections').select('id,title,description').order('title');
+    let { data, error } = await supabase.from('collections').select('id,title,description,image').order('title');
+    let includesImage = true;
+
+    if (error) {
+      const fallbackResult = await supabase.from('collections').select('id,title,description').order('title');
+      data = fallbackResult.data;
+      error = fallbackResult.error;
+      includesImage = false;
+    }
+
     if (error) throw error;
 
     const result = Array.isArray(data)
@@ -87,6 +96,7 @@ export const getCollections = async () => {
           id: preserveExactText(collection?.id),
           title: preserveExactText(collection?.title),
           description: preserveExactText(collection?.description),
+          image: includesImage ? preserveExactText(collection?.image) : '',
         }))
       : [];
     writeCache(COLLECTION_CACHE_KEY, result);
@@ -107,6 +117,7 @@ export const createCollection = async (collection) => {
     id: preserveExactText(collection?.id),
     title: preserveExactText(collection?.title),
     description: preserveExactText(collection?.description),
+    image: preserveExactText(collection?.image),
   };
 
   const { error } = await supabase.from('collections').upsert(payload);
@@ -123,6 +134,7 @@ export const updateCollection = async (collectionId, collection) => {
   const payload = {
     title: preserveExactText(collection?.title),
     description: preserveExactText(collection?.description),
+    image: preserveExactText(collection?.image),
   };
 
   const { error } = await supabase

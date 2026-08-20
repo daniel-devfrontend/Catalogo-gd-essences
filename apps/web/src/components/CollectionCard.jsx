@@ -4,6 +4,10 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
 const CollectionCard = ({ collection, index }) => {
+  const imageSrc = collection.image
+    ? `${import.meta.env.BASE_URL}${collection.image.replace(/^\/+/, '')}`
+    : `${import.meta.env.BASE_URL}Logos/LogoApp2-catalogo-512.png`;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -15,25 +19,21 @@ const CollectionCard = ({ collection, index }) => {
         to={`/coleccion/${collection.id}`}
         className="block group h-full"
       >
-        <div className="bg-card h-full p-8 border border-border transition-all duration-300 hover:border-foreground/40 flex flex-col">
-          <div className="flex items-start justify-between mb-6">
-            <h3 className="text-2xl font-medium" style={{ fontFamily: 'Playfair Display, serif' }}>
-              {collection.title}
-            </h3>
-            <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-1 transition-all duration-300" />
-          </div>
-          
-          <p className="text-sm leading-relaxed text-muted-foreground mb-8 flex-grow">
-            {collection.description}
-          </p>
-
-          <div className="flex items-center justify-between pt-4 border-t border-border/50 mt-auto">
-            <span className="text-xs font-medium tracking-widest uppercase text-muted-foreground">
-              {collection.count || 0} {collection.count === 1 ? 'Fragancia' : 'Fragancias'}
-            </span>
-            <span className="text-xs font-medium tracking-widest uppercase text-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              Explorar
-            </span>
+        <div className="relative h-full min-h-[230px] overflow-hidden border border-border bg-card transition-all duration-300 group-hover:border-foreground/60">
+          <img src={imageSrc} alt="" className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/5" />
+          <div className="relative flex h-full flex-col justify-end p-5 text-white sm:p-6">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <h3 className="text-2xl font-medium leading-tight" style={{ fontFamily: 'Playfair Display, serif' }}>
+                  {collection.title.replace(/^Colección\s+/i, '')}
+                </h3>
+                <p className="mt-2 text-xs uppercase tracking-[0.16em] text-white/75">
+                  Ver colección
+                </p>
+              </div>
+              <ArrowRight className="mb-1 h-5 w-5 shrink-0 transition-transform duration-300 group-hover:translate-x-1" />
+            </div>
           </div>
         </div>
       </Link>

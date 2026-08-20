@@ -1,7 +1,8 @@
 create table if not exists public.collections (
   id text primary key,
   title text not null,
-  description text
+  description text,
+  image text
 );
 
 create table if not exists public.products (
