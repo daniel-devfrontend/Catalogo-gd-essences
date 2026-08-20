@@ -12,7 +12,7 @@ const CollectionsPage = () => {
   const collectionsWithImages = React.useMemo(() => {
     return collections.map((collection) => ({
       ...collection,
-      image: perfumes.find((perfume) => perfume.collection === collection.id && perfume.image)?.image || '',
+      image: collection.image || perfumes.find((perfume) => perfume.collection === collection.id && perfume.image)?.image || '',
     }));
   }, [collections, perfumes]);
 
