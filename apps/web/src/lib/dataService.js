@@ -1,53 +1,53 @@
-import * as supabaseService from './supabaseService';
+import * as appwriteService from './appwriteService';
 
 export const getCollections = async (...args) => {
-  return supabaseService.getCollections(...args);
+  return appwriteService.getCollections(...args);
 };
 
 export const createCollection = async (...args) => {
-  return supabaseService.createCollection(...args);
+  return appwriteService.createCollection(...args);
 };
 
 export const updateCollection = async (...args) => {
-  return supabaseService.updateCollection(...args);
+  return appwriteService.updateCollection(...args);
 };
 
 export const deleteCollection = async (...args) => {
-  return supabaseService.deleteCollection(...args);
+  return appwriteService.deleteCollection(...args);
 };
 
 export const getProducts = async (...args) => {
-  return supabaseService.getProducts(...args);
+  return appwriteService.getProducts(...args);
 };
 
 export const createOrUpdateProduct = async (...args) => {
-  return supabaseService.createOrUpdateProduct(...args);
+  return appwriteService.createOrUpdateProduct(...args);
 };
 
 export const uploadProductImage = async (...args) => {
-  return supabaseService.uploadProductImage(...args);
+  return appwriteService.uploadProductImage(...args);
 };
 
 export const removeProductImages = async (...args) => {
-  return supabaseService.removeProductImages(...args);
+  return appwriteService.removeProductImages(...args);
 };
 
 export const addImagesToProduct = async (...args) => {
-  return supabaseService.addImagesToProduct(...args);
+  return appwriteService.addImagesToProduct(...args);
 };
 
 export const deleteProduct = async (...args) => {
-  return supabaseService.deleteProduct(...args);
+  return appwriteService.deleteProduct(...args);
 };
 
 export const restoreProduct = async (...args) => {
-  return supabaseService.restoreProduct(...args);
+  return appwriteService.restoreProduct(...args);
 };
 
 export const deleteProductPermanently = async (...args) => {
-  return supabaseService.deleteProductPermanently(...args);
+  return appwriteService.deleteProductPermanently(...args);
 };
 
 export const getProductById = async (...args) => {
-  return supabaseService.getProductById(...args);
+  return appwriteService.getProductById(...args);
 };

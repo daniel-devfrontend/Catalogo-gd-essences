@@ -1,38 +1,73 @@
-import { supabase, supabaseEnabled } from './supabaseClient';
+import { appwriteEnabled, appwriteRequest } from './appwriteClient';
 
-export const isSupabaseEnabled = () => supabaseEnabled;
+export const isAppwriteEnabled = () => appwriteEnabled;
 
 export const getCurrentUser = async () => {
-  if (!supabaseEnabled) return null;
-  const { data } = await supabase.auth.getSession();
-  return data?.session?.user || null;
+  if (!appwriteEnabled) return null;
+
+  try {
+    return await appwriteRequest('/account');
+  } catch (error) {
+    if (error.code === 401) return null;
+    throw error;
+  }
 };
 
 export const onAuthStateChange = (callback) => {
-  if (!supabaseEnabled) {
+  if (!appwriteEnabled) {
     callback(null);
     return () => {};
   }
 
-  const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-    callback(session?.user || null);
-  });
+  let active = true;
+  let previousUserId;
+  const checkSession = async () => {
+    try {
+      const user = await getCurrentUser();
+      const userId = user?.$id || null;
+      if (active && userId !== previousUserId) {
+        previousUserId = userId;
+        callback(user);
+      }
+    } catch (error) {
+      console.error('No se pudo comprobar la sesión de Appwrite.', error);
+    }
+  };
 
-  return () => data.subscription?.unsubscribe();
+  checkSession();
+  const intervalId = window.setInterval(checkSession, 30000);
+  window.addEventListener('focus', checkSession);
+
+  return () => {
+    active = false;
+    window.clearInterval(intervalId);
+    window.removeEventListener('focus', checkSession);
+  };
 };
 
 export const signIn = async ({ email, password }) => {
-  if (!supabaseEnabled) {
-    return { error: new Error('Supabase no está configurado.') };
+  if (!appwriteEnabled) {
+    return { error: new Error('Appwrite no está configurado.') };
   }
 
-  return supabase.auth.signInWithPassword({ email, password });
+  try {
+    await appwriteRequest('/account/sessions/email', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+    return { error: null };
+  } catch (error) {
+    return { error };
+  }
 };
 
 export const signOut = async () => {
-  if (!supabaseEnabled) {
-    return { error: null };
-  }
+  if (!appwriteEnabled) return { error: null };
 
-  return supabase.auth.signOut();
+  try {
+    await appwriteRequest('/account/sessions/current', { method: 'DELETE' });
+    return { error: null };
+  } catch (error) {
+    return { error };
+  }
 };

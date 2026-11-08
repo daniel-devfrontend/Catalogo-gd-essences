@@ -23,6 +23,14 @@ const emptyCollectionForm = {
   image: '',
 };
 
+const slugifyCollectionId = (value) => value
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase()
+  .replace(/[^a-z0-9._-]+/g, '-')
+  .replace(/^[^a-z0-9]+/, '')
+  .replace(/-+$/, '');
+
 const ProductAdmin = () => {
   const [products, setProducts] = React.useState([]);
   const [collections, setCollections] = React.useState([]);
@@ -190,6 +198,7 @@ const ProductAdmin = () => {
 
       const newProduct = {
         id: editingProductId || `custom-${Date.now()}`,
+        $id: currentProduct?.$id,
         name: form.name.trim(),
         price: Number(form.price),
         originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined,
@@ -478,12 +487,21 @@ const ProductAdmin = () => {
       return;
     }
 
+    const collectionId = editingCollectionId || slugifyCollectionId(collectionForm.title);
+    if (!collectionId || collectionId.length > 36) {
+      setMessage('El nombre debe generar un identificador de hasta 36 caracteres.');
+      return;
+    }
+
     try {
       const imageUrl = collectionImageFile
         ? await uploadProductImage(collectionImageFile)
         : collectionForm.image;
       const newCollection = {
-        id: editingCollectionId || collectionForm.title.toLowerCase().replace(/\s+/g, '-'),
+        id: collectionId,
+        $id: editingCollectionId
+          ? collections.find((collection) => collection.id === editingCollectionId)?.$id
+          : undefined,
         title: collectionForm.title.trim(),
         description: collectionForm.description.trim(),
         image: imageUrl || '',

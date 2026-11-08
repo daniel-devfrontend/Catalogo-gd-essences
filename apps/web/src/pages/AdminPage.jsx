@@ -2,7 +2,7 @@ import React from 'react';
 import { Helmet } from 'react-helmet';
 import { Header, Footer, ProductAdmin } from '@/components';
 import { Button, Input, Label } from '@/components/ui';
-import { isSupabaseEnabled, getCurrentUser, onAuthStateChange, signIn, signOut } from '@/lib/authService';
+import { isAppwriteEnabled, getCurrentUser, onAuthStateChange, signIn, signOut } from '@/lib/authService';
 
 const LoginForm = ({ onSuccess, onError }) => {
   const [email, setEmail] = React.useState('');
@@ -73,7 +73,7 @@ const AdminPage = () => {
   }, []);
 
   React.useEffect(() => {
-    if (!isSupabaseEnabled()) {
+    if (!isAppwriteEnabled()) {
       setStatus('disabled');
       return;
     }
@@ -121,12 +121,12 @@ const AdminPage = () => {
 
             {status === 'disabled' && (
               <div className="rounded-none border border-border bg-card p-8 text-foreground">
-                <h2 className="text-2xl font-medium mb-4">Supabase no está configurado</h2>
+                <h2 className="text-2xl font-medium mb-4">Appwrite no está configurado</h2>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Añade las variables <code className="mx-1 rounded-sm bg-muted px-1 py-0.5">VITE_SUPABASE_URL</code> y <code className="mx-1 rounded-sm bg-muted px-1 py-0.5">VITE_SUPABASE_ANON_KEY</code> en el archivo <code>.env</code>.
+                  Configura las variables de Appwrite indicadas en la documentación del proyecto.
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  La administración necesita Supabase para funcionar.
+                  La administración necesita Appwrite para funcionar.
                 </p>
               </div>
             )}

@@ -6,7 +6,7 @@ La web es un catálogo virtual de fragancias premium que permite:
 - filtrar y buscar productos,
 - ver detalles de cada perfume,
 - gestionar productos desde un panel administrativo,
-- guardar cambios localmente en el navegador sin backend.
+- administrar el catálogo mediante Appwrite Cloud.
 
 ## 2. Estructura de la aplicación
 - HomePage: portada y presentación.
@@ -37,9 +37,8 @@ La web es un catálogo virtual de fragancias premium que permite:
 ### 3.5 Administración
 - Permite crear o editar productos.
 - Permite adjuntar imágenes al producto.
-- Permite mover productos a borradores o eliminarlos definitivamente.
+- Permite publicar, restaurar y eliminar productos.
 - Permite crear colecciones.
-- Permite exportar e importar el estado de la base de datos local.
 
 ## 4. Funciones del módulo de datos
 La capa de datos central se encarga de:
@@ -48,33 +47,31 @@ La capa de datos central se encarga de:
 - crear o actualizar productos,
 - insertar imágenes,
 - añadir imágenes adicionales a un producto,
-- eliminar productos de forma lógica,
-- eliminar productos de forma permanente,
-- exportar/importar datos.
+- borrar y restaurar productos,
+- cargar y borrar imágenes en Appwrite Storage.
 
-## 5. Almacenamiento actual
-La web usa Supabase para productos, colecciones e imágenes en el catálogo.
+## 5. Almacenamiento
+La web usa Appwrite Cloud para autenticación, productos, colecciones e imágenes. Si el servicio no está configurado o no responde, las vistas públicas pueden usar el catálogo local incluido en el proyecto.
 
 ### Qué guarda
 - productos,
 - colecciones,
-- imágenes codificadas en Base64 dentro de los registros de productos.
+- imágenes en un bucket de Appwrite Storage,
+- sesiones del panel de administración administradas por Appwrite Auth.
 
 ### Ventajas
-- Persistencia remota en Supabase.
+- Persistencia remota en Appwrite Cloud.
 - Sincronización entre sesiones del usuario.
 - Autenticación real para el panel de administración.
 
 ## 6. Limitaciones importantes
-- Las imágenes en Base64 aumentan el tamaño de los registros.
-- Requiere que `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` estén configuradas.
-- La administración no funciona sin credenciales de Supabase.
+- Requiere las variables `VITE_APPWRITE_*` documentadas en `README-APPWRITE.md`.
+- El dominio del catálogo debe registrarse como plataforma Web en Appwrite.
+- Las contraseñas de usuarios de Supabase Auth no se pueden copiar a Appwrite; deben restablecerse.
+- Los permisos de Appwrite deben configurarse correctamente para que el catálogo lea los datos y los borradores sigan privados.
 
-## 7. Recomendación para producción futura
-Si quieres una versión más robusta, el siguiente paso natural es pasar a:
-- Firebase,
-- Supabase (si lo vuelves a necesitar),
-- o un backend propio con API REST.
+## 7. Migración desde Supabase
+El script `scripts/migrate_supabase_to_appwrite.mjs` copia productos, colecciones e imágenes. La migración se ejecuta manualmente y requiere credenciales locales; consulta `README-APPWRITE.md`.
 
 ## 8. Archivos clave
 - src/pages/HomePage.jsx
@@ -84,4 +81,5 @@ Si quieres una versión más robusta, el siguiente paso natural es pasar a:
 - src/pages/AdminPage.jsx
 - src/components/ProductAdmin.jsx
 - src/lib/dataService.js
-- src/lib/supabaseService.js
+- src/lib/appwriteClient.js
+- src/lib/appwriteService.js

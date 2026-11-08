@@ -51,7 +51,7 @@ const HomePage = () => {
         const availablePerfumes = await getProducts();
         setPerfumes(Array.isArray(availablePerfumes) && availablePerfumes.length ? availablePerfumes : localPerfumes);
       } catch (error) {
-        console.warn('No se pudieron cargar los perfumes desde Supabase, usando catálogo local.', error);
+        console.warn('No se pudieron cargar los perfumes desde Appwrite, usando catálogo local.', error);
         setPerfumes(localPerfumes);
       } finally {
         setIsLoading(false);
